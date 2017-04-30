@@ -217,6 +217,29 @@ particular priority order.
 8. Merge contents of different databases that have been updated on separate computer to keep in sync
 
 
+## Known Issues
+
+Below are issues known with v0.5.0:
+
+**Issue ONE:** On record update the following is printed to the
+screen: **symbol lookup error: amt: undefined symbol: rl_clear_history**
+
+**Cause for ONE:** This is caused by a older GNU Readline library not
+having the newer function call *rl_clear_history()* that is used by
+the application. The `amt` application was probably compiled on a
+system with the newer library, but is now being used an a system that
+has an older version Readline shared library installed. The use of
+this function newer call *rl_clear_history()* replaced the older
+*clear_history()* because it additionally frees private data Readline
+saves in the history list.
+
+**Fix for ONE:** Currently one fix is to upgrade the Readline library
+  on the system that `amt` is being used on. Use GNU Readline version
+  6.3 or newer, as this function call was added in version 6.3. A work
+  around from a development perspective to check for this should be
+  added in the future.
+
+
 ## Licenses
 
 The following licenses apply to the `amt` source code, and resulting built
