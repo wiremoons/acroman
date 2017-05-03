@@ -100,7 +100,7 @@ void check4DB(char *prog_name)
 
 	/* debug code
 	   printf("\nnew_dbfile: '%s' and dbfile: '%s'\n", new_dbfile, dbfile);
-	 */
+	*/
 
 	if (new_dbfile != NULL) {
 		free(new_dbfile);
@@ -175,7 +175,7 @@ char *get_last_acronym(void)
 
 	while (sqlite3_step(stmt) == SQLITE_ROW) {
 		acronym_name =
-		    strdup((const char *)sqlite3_column_text(stmt, 0));
+			strdup((const char *)sqlite3_column_text(stmt, 0));
 	}
 
 	sqlite3_finalize(stmt);
@@ -480,8 +480,8 @@ int del_acro_rec(int del_rec_id)
 			sqlite3_finalize(stmt);
 		} else {
 			printf
-			    ("\nRequest to delete record ID '%d' was abandoned "
-			     "by the user\n\n", del_rec_id);
+				("\nRequest to delete record ID '%d' was abandoned "
+				 "by the user\n\n", del_rec_id);
 		}
 	} else if (delete_rec_count > 1) {
 		printf(" » ERROR: record ID '%d' search returned '%d' records "
@@ -506,8 +506,8 @@ int del_acro_rec(int del_rec_id)
 /******************************************/
 void get_acro_src(void)
 {
-	rc = sqlite3_prepare_v2(db,
-				"select distinct(source) from acronyms order by source;",
+	rc = sqlite3_prepare_v2(db,"select distinct(source) "
+				"from acronyms order by source;",
 				-1, &stmt, NULL);
 
 	if (rc != SQLITE_OK) {
@@ -520,7 +520,7 @@ void get_acro_src(void)
 
 	while (sqlite3_step(stmt) == SQLITE_ROW) {
 		acro_src_name =
-		    strdup((const char *)sqlite3_column_text(stmt, 0));
+			strdup((const char *)sqlite3_column_text(stmt, 0));
 		printf("[ %s ] ", acro_src_name);
 		add_history(acro_src_name);
 
@@ -553,8 +553,13 @@ int update_acro_rec(int update_rec_id)
 	printf("\nSearching for record ID: '%d' in database...\n\n",
 	       update_rec_id);
 
-	/* ifnull() is used to replace any database NULL fields with an empty string as NULL was causing issues with readline when saving a NULL value to add_history() */
-	rc = sqlite3_prepare_v2(db,"select rowid, ifnull(Acronym,''), ifnull(Definition,''), ifnull(Description,''), ifnull(Source,'') from ACRONYMS where rowid is ?;", -1,&stmt, NULL);
+	/* ifnull() is used to replace any database NULL fields with
+	   an empty string as NULL was causing issues with readline
+	   when saving a NULL value to add_history() */
+	rc = sqlite3_prepare_v2(db,"select rowid, ifnull(Acronym,''),"
+				" ifnull(Definition,''), ifnull(Description,''),"
+				" ifnull(Source,'') from ACRONYMS where rowid is ?;",
+				-1,&stmt, NULL);
 
 	if (rc != SQLITE_OK) {
 		fprintf(stderr, "SQL prepare error: %s\n", sqlite3_errmsg(db));
@@ -602,7 +607,8 @@ int update_acro_rec(int update_rec_id)
 			char *u_acro_desc = NULL;
 			char *u_acro_src = NULL;
 
-			printf("\nUse ↑ or ↓ keys to select previous entries text for re-editing or just type in new:\n\n");
+			printf("\nUse ↑ or ↓ keys to select previous entries text "
+			       "for re-editing or just type in new:\n\n");
 
 			while (1) {
 				u_acro = readline("Enter the acronym: ");
@@ -650,8 +656,11 @@ int update_acro_rec(int update_rec_id)
 			char *sql_update = NULL;
 
 			/* build SQLite 'UPDATE' query */
-			sql_update = sqlite3_mprintf("update ACRONYMS set Acronym=%Q, Definition=%Q, Description=%Q, Source=%Q where rowid is ?;",
-						  u_acro, u_acro_expd, u_acro_desc, u_acro_src);
+			sql_update = sqlite3_mprintf("update ACRONYMS set Acronym=%Q, "
+						     "Definition=%Q, Description=%Q, "
+						     "Source=%Q where rowid is ?;",
+						     u_acro, u_acro_expd,
+						     u_acro_desc, u_acro_src);
 
 			rc = sqlite3_prepare_v2(db, sql_update, -1, &stmt, NULL);
 			if (rc != SQLITE_OK) {
@@ -688,7 +697,8 @@ int update_acro_rec(int update_rec_id)
 
 			/* perform the actual database update */
 			while (sqlite3_step(stmt) == SQLITE_ROW) {
-				/* should not run here as 'sqlite3_step(stmt)' should immediately return with SQLITE_DONE only for an UPDATE */
+				/* should not run here as 'sqlite3_step(stmt)' should
+				   immediately return with SQLITE_DONE for an SQL UPDATE */
 				update_rec_count++;
 			}
 
@@ -715,15 +725,22 @@ int update_acro_rec(int update_rec_id)
 			}
 
 
-			/* capture number of Sqlite database changes made in last transaction - should be one */
+			/* capture number of Sqlite database changes made in
+			   last transaction - should be one */
 			int db_changes = sqlite3_changes(db);
 
 			/* check for how many records were updated - should only be one! */
 			if (update_rec_count > 0) {
-				printf("\n\nWARNING: Database changes made was: '%d' but record changes made by sqlite3_step() were: '%d'\n",db_changes,update_rec_count);
-				printf("Only record id: '%d' should of been changed - but '%d' changes were made unexpectedly.\n\n",update_rec_id,update_rec_count);
+				printf("\n\nWARNING: Database changes made was: "
+				       "'%d' but record changes made by sqlite3_step() "
+				       "were: '%d'\n",
+				       db_changes,update_rec_count);
+				printf("Only record id: '%d' should of been changed - "
+				       "but '%d' changes were made unexpectedly.\n\n",
+				       update_rec_id,update_rec_count);
 			} else {
-				/* no update issues found - so set count to actual database change count */
+				/* no update issues found - so set count to actual
+				   database change count */
 				update_rec_count = db_changes;
 			}
 			
