@@ -105,7 +105,10 @@ void exit_cleanup(void)
 	}
 
 	sqlite3_shutdown();
-	printf("\nCompleted SQLite database shutdown\n\nAll is well\n");
+	printf("\n"
+	       "Completed SQLite database shutdown\n"
+	       "Run  with '-h' for help with available command line flags\n\n"
+	       "All is well\n");
 
 	/* free any global varables below */
 	if (findme != NULL) {
