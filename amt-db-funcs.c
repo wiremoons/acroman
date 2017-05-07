@@ -294,7 +294,7 @@ int new_acronym(void)
 			if (n_acro_src != NULL) {
 				free(n_acro_src);
 			}
-			rl_clear_history();
+			clear_history();
 			exit(EXIT_FAILURE);
 		}
 	}
@@ -324,7 +324,7 @@ int new_acronym(void)
 		if (n_acro_src != NULL) {
 			free(n_acro_src);
 		}
-		rl_clear_history();
+		clear_history();
 		exit(EXIT_FAILURE);
 	}
 
@@ -347,7 +347,7 @@ int new_acronym(void)
 		if (n_acro_src != NULL) {
 			free(n_acro_src);
 		}
-		rl_clear_history();
+		clear_history();
 		exit(EXIT_FAILURE);
 	}
 
@@ -374,7 +374,7 @@ int new_acronym(void)
 	if (n_acro_src != NULL) {
 		free(n_acro_src);
 	}
-	rl_clear_history();
+	clear_history();
 
 	int new_rec_cnt = get_rec_count();
 	printf("Inserted '%d' new record. Total database record count "
@@ -648,7 +648,7 @@ int update_acro_rec(int update_rec_id)
 					if (u_acro_src != NULL) {
 						free(u_acro_src);
 					}
-					rl_clear_history();
+					clear_history();
 					exit(EXIT_FAILURE);
 				}
 			}
@@ -681,7 +681,7 @@ int update_acro_rec(int update_rec_id)
 				if (u_acro_src != NULL) {
 					free(u_acro_src);
 				}
-				rl_clear_history();
+				clear_history();
 				exit(EXIT_FAILURE);
 			}
 
@@ -720,7 +720,7 @@ int update_acro_rec(int update_rec_id)
 				if (u_acro_src != NULL) {
 					free(u_acro_src);
 				}
-				rl_clear_history();
+				clear_history();
 				exit(EXIT_FAILURE);
 			}
 
@@ -768,7 +768,7 @@ int update_acro_rec(int update_rec_id)
 			if (u_acro_src != NULL) {
 				free(u_acro_src);
 			}
-			rl_clear_history();
+			clear_history();
 
 			int new_rec_cnt = get_rec_count();
 			printf
