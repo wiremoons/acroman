@@ -5,13 +5,13 @@ cmake_minimum_required(VERSION 3.6)
 project(amt)
 #
 # enable verbose output
-set(CMAKE_VERBOSE_MAKEFILE on)
+#set(CMAKE_VERBOSE_MAKEFILE on)
 #
 # add list of c source code files to var ${SOURCES}
 file(GLOB SOURCES "./*.c")
 #
 # add additional flags to standard ${CMAKE_C_FLAGS}
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11 -Wall")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu11 -Wall")
 #
 # give final executable name and the C source code files required to build it
 add_executable(amt ${SOURCES})
