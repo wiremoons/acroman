@@ -6,8 +6,9 @@
 #include <malloc.h>		/* free for use with strdup */
 #include <stdio.h>		/* printf */
 #include <stdlib.h>		/* getenv */
-#include <string.h>		/* strlen */
+#include <string.h>		/* strlen strdup */
 #include <unistd.h>		/* strdup access */
+#include <getopt.h>		/* getopt long */
 
 /*
  * Used to parse command line options provided by the user.
