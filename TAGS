@@ -1,9 +1,23 @@
 
-main.c,198
-int main(int argc, char **argv)main12,330
-void exit_cleanup(void)exit_cleanup91,1959
-void print_start_screen(char *prog_name)print_start_screen117,2482
-void show_help(void)show_help127,2782
+amt-db-funcs.h,45
+#define AMT_DB_FUNCS_H_AMT_DB_FUNCS_H_4,88
+
+cli-args.h,37
+#define CLI_ARGS_H_CLI_ARGS_H_4,89
+
+main.h,962
+#define MAIN_H_MAIN_H_28,954
+char *dbfile = "";		/* path and name of acronyms database filename */dbfile40,1293
+sqlite3 *db = NULL;		/* handle to the database */db41,1363
+int rc = 0;			/* returned result codes from calling SQLite functions */rc42,1413
+const char *data = NULL;	/* data returned from SQL stmt run */data43,1485
+sqlite3_stmt *stmt = NULL;	/* preprepared SQL query statement */stmt44,1548
+char appversion[] = "0.5.1";	/* set the version of the app here */appversion45,1613
+int help = 0;			/* control help outputs request 0 == off | 1 == on */help46,1680
+char *findme = NULL;		/* string request on command line for acronym search */findme47,1750
+int del_rec_id = -1;		/* database record id (rowid) used to delete records */del_rec_id48,1828
+int newrec = 0;			/* request to add a new record 0 == off | 1 == on */newrec49,1906
+int update_rec_id = -1;		/* database record id (rowid) used to update records */update_rec_id50,1977
 
 sqlite3.h,44755
 #define SQLITE3_HSQLITE3_H34,1510
@@ -659,22 +673,25 @@ struct fts5_api {fts5_api10451,496613
   int (*xFindTokenizer)(xFindTokenizer10464,496920
   int (*xCreateFunction)(xCreateFunction10472,497087
 
-cli-args.h,37
-#define CLI_ARGS_H_CLI_ARGS_H_4,89
+amt-db-funcs.c,474
+int get_rec_count(void)get_rec_count22,931
+void check4DB(char *prog_name)check4DB48,1750
+bool check_db_access(void)check_db_access127,4264
+char *get_last_acronym(void)get_last_acronym164,5312
+int do_acronym_search(char *findme)do_acronym_search197,6292
+int new_acronym(void)new_acronym245,7866
+int del_acro_rec(int del_rec_id)del_acro_rec397,11799
+void get_acro_src(void)get_acro_src507,14931
+int update_acro_rec(int update_rec_id)update_acro_rec546,16086
 
-main.h,962
-#define MAIN_H_MAIN_H_28,954
-char *dbfile = "";		/* path and name of acronyms database filename */dbfile40,1293
-sqlite3 *db = NULL;		/* handle to the database */db41,1363
-int rc = 0;			/* returned result codes from calling SQLite functions */rc42,1413
-const char *data = NULL;	/* data returned from SQL stmt run */data43,1485
-sqlite3_stmt *stmt = NULL;	/* preprepared SQL query statement */stmt44,1548
-char appversion[] = "0.5.0";	/* set the version of the app here */appversion45,1613
-int help = 0;			/* control help outputs request 0 == off | 1 == on */help46,1680
-char *findme = NULL;		/* string request on command line for acronym search */findme47,1750
-int del_rec_id = -1;		/* database record id (rowid) used to delete records */del_rec_id48,1828
-int newrec = 0;			/* request to add a new record 0 == off | 1 == on */newrec49,1906
-int update_rec_id = -1;		/* database record id (rowid) used to update records */update_rec_id50,1977
+cli-args.c,61
+void get_cli_args(int argc, char **argv)get_cli_args16,406
+
+main.c,198
+int main(int argc, char **argv)main12,330
+void exit_cleanup(void)exit_cleanup91,1959
+void print_start_screen(char *prog_name)print_start_screen120,2574
+void show_help(void)show_help130,2874
 
 sqlite3.c,828101
 #define SQLITE_CORE SQLITE_CORE20,1241
@@ -11813,45 +11830,3 @@ static int fts5VocabEofMethod(sqlite3_vtab_cursor *pCursor){fts5VocabEofMethod
 static int fts5VocabColumnMethod(fts5VocabColumnMethod202023,7100144
 static int fts5VocabRowidMethod(fts5VocabRowidMethod202067,7101464
 static int sqlite3Fts5VocabInit(Fts5Global *pGlobal, sqlite3 *db){sqlite3Fts5VocabInit202076,7101657
-
-amt-db-funcs.h,45
-#define AMT_DB_FUNCS_H_AMT_DB_FUNCS_H_4,88
-
-cli-args.c,61
-void get_cli_args(int argc, char **argv)get_cli_args16,406
-
-Makefile,1082
-SRC=amt-db-funcs.c cli-args.c main.c sqlite3.cSRC12,447
-OUTNAME=amtOUTNAME13,495
-CC=gccCC16,536
-ARCH=32ARCH18,575
-CFLAGS=$(CFLAGS_$(ARCH))CFLAGS20,652
-EXE_END=.exeEXE_END22,769
-CFLAGS_32=-g -Wall -m32 -pg -std=gnu11CFLAGS_3226,886
-CFLAGS_64=-g -Wall -m64 -pg -std=gnu11CFLAGS_6428,990
-N-CFLAGS_32=-m32 -mfpmath=sse -flto -funroll-loops -Wall -std=gnu11N-CFLAGS_3232,1118
-N-CFLAGS_64=-m64 -flto -funroll-loops -Wall -std=gnu11N-CFLAGS_6433,1187
-OPT-CFLAGS_32=-m32 -mfpmath=sse -flto -march=native -funroll-loops -Wall -std=gnu11OPT-CFLAGS_3235,1323
-OPT-CFLAGS_64=-flto -funroll-loops -march=native -Wall -m64 -std=gnu11OPT-CFLAGS_6436,1408
-LIBFLAGS=-lpthread -ldl -lreadlineLIBFLAGS38,1500
-RM = delRM41,1588
-uname_S := $(shell sh -c 'uname -s 2>/dev/null || echo not')uname_S45,1710
-	RM = rmRM50,1899
-	ARCH := $(shell getconf LONG_BIT)ARCH52,1953
-	CFLAGS=$(CFLAGS_$(ARCH))CFLAGS54,2050
-	EXE_END=EXE_END56,2140
-	RM = rmRM61,2289
-	ARCH := $(shell getconf LONG_BIT)ARCH63,2343
-	CFLAGS=$(CFLAGS_$(ARCH))CFLAGS65,2440
-	EXE_END=EXE_END67,2533
-
-amt-db-funcs.c,474
-int get_rec_count(void)get_rec_count22,931
-void check4DB(char *prog_name)check4DB48,1750
-bool check_db_access(void)check_db_access127,4264
-char *get_last_acronym(void)get_last_acronym164,5312
-int do_acronym_search(char *findme)do_acronym_search197,6292
-int new_acronym(void)new_acronym245,7866
-int del_acro_rec(int del_rec_id)del_acro_rec397,11799
-void get_acro_src(void)get_acro_src507,14931
-int update_acro_rec(int update_rec_id)update_acro_rec546,16084
