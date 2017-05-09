@@ -16,3 +16,5 @@ tags
 .tags_sorted_by_file
 # ignore and database files
 *.db
+# ingnore any C object files
+*.o
