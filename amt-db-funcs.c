@@ -121,7 +121,7 @@ void check4DB(char *prog_name)
 
 /**********************************************************************/
 /* Check the filename and path given for the acronym database and see */
-/* if it is accessable. If the file is located then print some stats  */
+/* if it is accessible. If the file is located then print some stats  */
 /* on path, size and last modified time.                              */
 /**********************************************************************/
 bool check_db_access(void)
