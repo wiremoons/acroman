@@ -20,4 +20,4 @@ tags
 # ingnore any C object files
 *.o
 # ignore .depends file created by cmake
-.depends
+.depend
