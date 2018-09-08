@@ -2,8 +2,11 @@
 
 #include "cli-args.h"
 
+/* added to enable compile on MacOSX */
+#ifndef __clang__
+# include <malloc.h>    /* free for use with strdup */
+#endif
 #include <ctype.h>		/* isdigit */
-#include <malloc.h>		/* free for use with strdup */
 #include <stdio.h>		/* printf */
 #include <stdlib.h>		/* getenv */
 #include <string.h>		/* strlen strdup */
