@@ -2,12 +2,14 @@
 
 #include "amt-db-funcs.h"
 
+/* added to enable compile on MacOSX */
+#ifndef __clang__
+# include <malloc.h>           /* free for use with strdup and malloc */
+#endif
+
 #include <errno.h>             /* strerror */
 #include <libgen.h>            /* basename and dirname */
 #include <locale.h>            /* number output formatting with commas */
-#include <malloc.h>            /* free for use with strdup and malloc */
-#include <readline/history.h>  /* realine history support */
-#include <readline/readline.h> /* readline support for text entry */
 #include <stdio.h>             /* printf and asprintf */
 #include <stdlib.h>            /* getenv */
 #include <string.h>            /* strlen strdup */
@@ -15,6 +17,8 @@
 #include <sys/types.h>         /* stat */
 #include <time.h>              /* stat file modification time */
 #include <unistd.h>            /* strdup access stat and FILE */
+#include <readline/history.h>  /* realine history support */
+#include <readline/readline.h> /* readline support for text entry */
 
 /***********************************************************************/
 /* Run SQL query to obtain current number of acronyms in the database. */
