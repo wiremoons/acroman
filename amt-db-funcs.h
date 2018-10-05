@@ -14,17 +14,17 @@ extern const char *data;
 extern char *findme;
 
 /*
-*   FUNCTION DECLARATIONS
-*/
+ *   FUNCTION DECLARATIONS
+ */
 
-int get_rec_count(void);		/* get current acronym record count */
-void check4DB(char *prog_name);		/* ensure database exists and is accessible */
-char *get_last_acronym(void);		/* get last acronym added to database */
-int do_acronym_search(char *findme);	/* search database for 'findme' string */
-int new_acronym(void);			/* add a new record entry to the database */
-void get_acro_src(void);		/* get a list of acronym sources */
-int del_acro_rec(int del_rec_id);	/* delete a acronym record */
-bool check_db_access(void);		/* database file exists and can be accessed? */
-int update_acro_rec(int update_rec_id); /* update a record in the database */
+int get_rec_count(void);        		/* get current acronym record count */
+void check4DB(char *prog_name); 		/* ensure database exists and is accessible */
+char *get_last_acronym(void);   		/* get last acronym added to database */
+int do_acronym_search(char *findme); 	/* search database for 'findme' string */
+int new_acronym(void);            		/* add a new record entry to the database */
+void get_acro_src(void);          		/* get a list of acronym sources */
+int del_acro_rec(int del_rec_id); 		/* delete a acronym record */
+bool check_db_access(void); 			/* database file exists and can be accessed? */
+int update_acro_rec(int update_rec_id);/* update a record in the database */
 
 #endif // AMT_DB_FUNCS_H_

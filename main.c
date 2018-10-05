@@ -6,6 +6,7 @@
 #ifndef __clang__
 # include <malloc.h>    /* free for use with strdup */
 #endif
+
 #include <locale.h>		/* number output formatting with commas */
 #include <stdio.h>		/* printf */
 #include <stdlib.h>		/* getenv */
