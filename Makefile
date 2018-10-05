@@ -6,13 +6,15 @@ ifneq (,)
 This makefile requires GNU Make.
 endif
 
+
 PROGRAM = amt
 C_FILES := $(wildcard *.c)
 OBJS := $(patsubst %.c, %.o, $(C_FILES))
 CC = cc
-CFLAGS = -Wall -std=gnu11
-LDFLAGS =
+CFLAGS = -Wall -std=gnu11 -I/usr/local/include
+LDFLAGS = -L/usr/local/lib
 LDLIBS = -lreadline -ldl -pthread
+CPPFLAGS=-I/usr/local/include
 
 all: $(PROGRAM)
 
