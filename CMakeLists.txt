@@ -1,6 +1,6 @@
 # cmake build file for amt
 #  created 07 May 2017
-#  To use run:  cmake . && make  
+#  To use run:  mkdir build && cd build && cmake .. && make  
 cmake_minimum_required(VERSION 3.6)
 project(amt)
 #
