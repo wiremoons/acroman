@@ -18,4 +18,4 @@ extern int update_rec_id;
 
 void get_cli_args(int argc, char **argv);
 
-#endif // AMT_H_
+#endif // CLI_ARGS_H_
