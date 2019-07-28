@@ -1,4 +1,4 @@
-# Git Ignore for Sybil library
+# Git Ignore for Acroman application
 # exclude Vim temp files
 *.swp
 *.swo
@@ -21,3 +21,5 @@ tags
 *.o
 # ignore .depends file created by cmake
 .depend
+# ignore CMake build directory
+build/
