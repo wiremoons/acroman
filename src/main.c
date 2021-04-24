@@ -21,7 +21,7 @@ int main(int argc, char **argv)
 	// setlocale (LC_ALL, "");
 
 	char *prog_name = strdup(argv[0]);
-	if (prog_name == NULL) {
+	if (NULL == prog_name) {
 		fprintf(stderr, "ERROR: unable to set program name\n");
 	}
 
