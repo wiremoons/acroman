@@ -23,3 +23,5 @@ tags
 .depend
 # ignore CMake build directory
 build/
+# ignore 'bin' directory of compiled binaries
+bin/

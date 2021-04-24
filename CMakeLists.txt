@@ -8,7 +8,7 @@ project(amt)
 #set(CMAKE_VERBOSE_MAKEFILE on)
 #
 # add list of c source code files to var ${SOURCES}
-file(GLOB SOURCES "./*.c")
+file(GLOB SOURCES "./src/*.c")
 #
 # add additional flags to standard ${CMAKE_C_FLAGS}
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu11 -Wall")
