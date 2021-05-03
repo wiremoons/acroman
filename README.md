@@ -1,4 +1,4 @@
-[![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/hyperium/hyper/master/LICENSE)
+[![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/hyperium/hyper/master/LICENSE)![](https://github.com/wiremoons/opass/workflows/amt-build/badge.svg)
 
 # What is 'amt'?
 
@@ -111,8 +111,8 @@ http://cnswww.cns.cwru.edu/php/chet/readline/readline.html
 To install the required libraries and compiler tools on various systems, use the
 following commands before attempting to compile `amt`:
 
-- Ubuntu Linux: `sudo apt install build-essential libreadline6 libreadline6-dev`
-- Fedora (Workstation) Linux: `sudo dnf install readline-devel `
+- Ubuntu Linux: `sudo apt install build-essential cmake readline-common libreadline-dev`
+- Fedora (Workstation) Linux: `sudo dnf install readline-devel cmake`
 
 On Windows you can use a C compiler such as MinGW (or equivalent) to build the
 application. In order to build the Windows version for testing and personal use,
@@ -123,15 +123,13 @@ this is done on Fedora Workstation as a cross compile.
 Before trying to build `amt` make sure you have the required dependencies install
 - see above for more information.
 
-An example command to compile `amt` with GCC compiler on a 64bit Linux system is shown below:
-```
-gcc -g -Wall -m64 -std=gnu11 -o amt amt-db-funcs.c cli-args.c main.c sqlite3.c -lpthread -ldl -lreadline
-```
+Use the provided `bash` shell script to run the build steps: `./build.sh`
 
-Alternatively, the program can be compiled using the provided '*Makefile*'. For
-example to compile a optimised (non debug) version of `amt`, run:
-```
-make opt
+The build binary will be added to a new `./bin` sub directory - the above build script also provided the same informaiton.
+
+To compile yourself without using `cmake` or the recommended `build.sh` script - the following command can be used to compile `amt` with GCC compiler on a 64bit Linux system is shown below:
+```shell
+gcc -g -Wall -m64 -std=gnu11 -o amt amt-db-funcs.c cli-args.c main.c sqlite3.c -lpthread -ldl -lreadline
 ```
 
 ## Database Location
