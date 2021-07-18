@@ -12,7 +12,7 @@
 #include <locale.h>            /* number output formatting with commas */
 #include <stdio.h>             /* printf and asprintf */
 #include <readline/readline.h> /* readline support for text entry */
-#include <readline/history.h>  /* realine history support */
+#include <readline/history.h>  /* readline history support */
 #include <stdlib.h>            /* getenv */
 #include <string.h>            /* strlen strdup */
 #include <sys/stat.h>          /* stat */
@@ -49,11 +49,11 @@ int get_rec_count(void)
 /* - 2 : file 'acronyms.db' in same location as the application */
 /* - 3 : TODO offer to create a new Database                    */
 /****************************************************************/
-void check4DB(char *prog_name)
+void check4DB(const char *prog_name)
 {
     bool run_ok;
 
-    /* get database file from environment variable ARCODB first */
+    /* get database file from environment variable ACRODB first */
     dbfile = getenv("ACRODB");
     /* if the environment variable exists - check if its valid */
     if (dbfile != NULL) {
@@ -64,7 +64,7 @@ void check4DB(char *prog_name)
         }
     }
 
-    /* nothing is set in environment variable ARCODB - so database 			*/
+    /* nothing is set in environment variable ACRODB - so database 			*/
     /* might be found in the application directory instead, named 				*/
     /* as the default filename: 'acronyms.db' 									*/
     /* tmp copy needed here as each call to dirname() below can change the	*/
@@ -83,7 +83,7 @@ void check4DB(char *prog_name)
         exit(EXIT_FAILURE);
     }
 
-    int x = snprintf(new_dbfile, new_dbfile_sz, "%s%s", dirname(prog_name),
+    int x = snprintf(new_dbfile, new_dbfile_sz, "%s%s", dirname((char *)prog_name),
                      "/acronyms.db");
 
     if (x == -1) {
@@ -158,7 +158,7 @@ bool check_db_access(void)
         return (false);
     }
 
-    printf(" - Database size: %'ld bytes\n", sb.st_size);
+    printf(" - Database size: %'lld bytes\n", sb.st_size);
     printf(" - Database last modified: %s\n", ctime(&sb.st_mtime));
 
     return (true);
@@ -583,7 +583,7 @@ int update_acro_rec(int update_rec_id)
 
         printf("DESCRIPTION: %s\n", (const char *)sqlite3_column_text(stmt, 3));
         printf("SOURCE: %s\n", (const char *)sqlite3_column_text(stmt, 4));
-        /* grab a copy of the returned record id fileds into Readline
+        /* grab a copy of the returned record id fields into Readline
          * history - for user recall later to save re-typing entries */
         add_history((const char *)sqlite3_column_text(stmt, 1));
         add_history((const char *)sqlite3_column_text(stmt, 2));

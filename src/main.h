@@ -37,22 +37,21 @@
  *   APPLICATION GLOBAL VARIABLES
  */
 
-char *dbfile = "";  			/* path and name of acronyms database filename */
-sqlite3 *db = NULL; 			/* handle to the database */
-int rc = 0;         			/* returned result codes from calling SQLite functions */
-const char *data = NULL;     	/* data returned from SQL stmt run */
-sqlite3_stmt *stmt = NULL;   	/* preprepared SQL query statement */
-char appversion[] = "0.5.4"; 	/* set the version of the app here */
-int help = 0;           		/* control help outputs request 0 == off | 1 == on */
-char *findme = NULL;    		/* string request on command line for acronym search */
-int del_rec_id = -1;    		/* database record id (rowid) used to delete records */
-int newrec = 0;         		/* request to add a new record 0 == off | 1 == on */
-int update_rec_id = -1; 		/* database record id (rowid) used to update records */
+char *dbfile = "";  			    /* path and name of acronyms database filename */
+sqlite3 *db = NULL; 			    /* handle to the database */
+int rc = 0;         			    /* returned result codes from calling SQLite functions */
+const char *data = NULL;     	    /* data returned from SQL stmt run */
+sqlite3_stmt *stmt = NULL;   	    /* pre-prepared SQL query statement */
+const char appversion[] = "0.5.5"; 	/* set the version of the app here */
+int help = 0;           		    /* control help outputs request 0 == off | 1 == on */
+char *findme = NULL;    		    /* string request on command line for acronym search */
+int del_rec_id = -1;    		    /* database record id (rowid) used to delete records */
+int newrec = 0;         		    /* request to add a new record 0 == off | 1 == on */
+int update_rec_id = -1; 		    /* database record id (rowid) used to update records */
 
-/* FUNCTION DECLARATIONS FOR main.c */
 
 void exit_cleanup(void);
 void show_help(void);
-void print_start_screen(char *prog_name);
+void print_start_screen(const char *prog_name);
 
 #endif // MAIN_H_

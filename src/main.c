@@ -20,8 +20,8 @@ int main(int argc, char **argv)
 	/* Set the default locale values according to environment variables. */
 	// setlocale (LC_ALL, "");
 
-	char *prog_name = strdup(argv[0]);
-	if (NULL == prog_name) {
+	const char *prog_name = argv[0];
+	if ((NULL == prog_name) | (strlen( prog_name) <= 0)) {
 		fprintf(stderr, "ERROR: unable to set program name\n");
 	}
 
@@ -35,11 +35,6 @@ int main(int argc, char **argv)
 	}
 
 	check4DB(prog_name);
-
-	/* done with this now - used by: */
-	if (prog_name != NULL) {
-		free(prog_name);
-	}
 
 	sqlite3_initialize();
 	rc = sqlite3_open_v2(dbfile, &db,
@@ -59,8 +54,7 @@ int main(int argc, char **argv)
 
 	/* perform a database acronym search */
 	if (findme != NULL) {
-		int rec_match = 0;
-		rec_match = do_acronym_search(findme);
+		const int rec_match = do_acronym_search(findme);
 		printf("\nDatabase search found '%'d' matching records\n",
 		       rec_match);
 	}
@@ -75,7 +69,7 @@ int main(int argc, char **argv)
 
 	/* delete an acronym record */
 	if (del_rec_id >= 0) {
-		int del_worked = del_acro_rec(del_rec_id);
+		const int del_worked = del_acro_rec(del_rec_id);
 		if (del_worked) {
 			printf("\nDELETE DONE");
 		}
@@ -83,7 +77,7 @@ int main(int argc, char **argv)
 
 	/* update an acronym record */
 	if (update_rec_id >= 0) {
-		int update_worked = update_acro_rec(update_rec_id);
+		const int update_worked = update_acro_rec(update_rec_id);
 		if (update_worked) {
 			printf("\nUPDATE DONE");
 		}
@@ -121,7 +115,7 @@ void exit_cleanup(void)
 	exit(EXIT_SUCCESS);
 }
 
-void print_start_screen(char *prog_name)
+void print_start_screen(const char *prog_name)
 {
 	printf("\n"
 	       "\t\tAcronym Management Tool\n"

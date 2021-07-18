@@ -8,7 +8,7 @@ extern char **argv;
 extern char *findme;
 extern int newrec;
 extern int help;
-extern char appversion[];
+extern const char appversion[];
 extern int del_rec_id;
 extern int update_rec_id;
 
