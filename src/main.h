@@ -19,7 +19,7 @@
  * they are included in the same directory as this programs source code.
  * To build the program, use the provided Makefile or compile with:
  *
- * gcc -Wall -std=gnu11 -m64 -g -o amt amt-db-funcs.c cli-args.c main.c
+ * gcc -Wall -std=gnu11 -m64 -g -o amt amt-db-funcs.c main.c
  * sqlite3.c lpthread -ldl -lreadline
  *
  */
@@ -28,7 +28,6 @@
 #define MAIN_H_
 
 #include "amt-db-funcs.h" /* manages the database access for the application */
-#include "cli-args.h"     /* manages the command line args from user */
 #include "sqlite3.h"      /* SQLite header */
 
 #include <stdlib.h> /* to allow NULL to be used for globals var declarations */
@@ -42,7 +41,7 @@ sqlite3 *db = NULL; 			    /* handle to the database */
 int rc = 0;         			    /* returned result codes from calling SQLite functions */
 const char *data = NULL;     	    /* data returned from SQL stmt run */
 sqlite3_stmt *stmt = NULL;   	    /* pre-prepared SQL query statement */
-const char appversion[] = "0.5.5"; 	/* set the version of the app here */
+const char appversion[] = "0.6.0"; 	/* set the version of the app here */
 int help = 0;           		    /* control help outputs request 0 == off | 1 == on */
 char *findme = NULL;    		    /* string request on command line for acronym search */
 int del_rec_id = -1;    		    /* database record id (rowid) used to delete records */

@@ -129,7 +129,7 @@ The build binary will be added to a new `./bin` sub directory - the above build 
 
 To compile yourself without using `cmake` or the recommended `build.sh` script - the following command can be used to compile `amt` with GCC compiler on a 64bit Linux system is shown below:
 ```shell
-gcc -g -Wall -m64 -std=gnu11 -o amt amt-db-funcs.c cli-args.c main.c sqlite3.c -lpthread -ldl -lreadline
+gcc -g -Wall -m64 -std=gnu11 -o amt amt-db-funcs.c main.c sqlite3.c -lpthread -ldl -lreadline
 ```
 
 ## Database Location
