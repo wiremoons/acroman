@@ -16,10 +16,10 @@ bool check_db_access(amtdb_struct *amtdb);                      /* database file
 bool initialise_database(amtdb_struct *amtdb);                  /* initialise SQLite and open database file */
 char *get_last_acronym(amtdb_struct *amtdb);                    /* get last acronym added to database */
 int do_acronym_search(char *findme, amtdb_struct *amtdb);       /* search database for 'findme' string */
-int new_acronym(amtdb_struct *amtdb);                           /* add a new record entry to the database */
+bool new_acronym(amtdb_struct *amtdb);                           /* add a new record entry to the database */
 void get_acro_src(amtdb_struct *amtdb);                         /* get a list of acronym sources */
-int del_acro_rec(int del_rec_id,amtdb_struct *amtdb);           /* delete a acronym record */
-int update_acro_rec(int update_rec_id,amtdb_struct *amtdb);     /* update a record in the database */
+bool del_acro_rec(int del_rec_id, amtdb_struct *amtdb);           /* delete a acronym record */
+bool update_acro_rec(int update_rec_id, amtdb_struct *amtdb);     /* update a record in the database */
 bool output_db_stats(amtdb_struct *amtdb);
 bool update_max_recid(amtdb_struct *amtdb);
 

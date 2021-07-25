@@ -40,7 +40,6 @@ int main(int argc, char **argv) {
         exit(EXIT_FAILURE);
     }
 
-
     /** @note obtain any command line args from the user and action them */
     if (argc > 1) {
 
@@ -58,8 +57,7 @@ int main(int argc, char **argv) {
         if (strcmp(argv[1], "-s") == 0 || strcmp(argv[1], "--search") == 0) {
             if (argc > 2 && strlen(argv[2]) > 0) {
                 const int rec_match = do_acronym_search(argv[2],&amtdb);
-                printf("\nDatabase search found '%'d' matching records\n",
-                       rec_match);
+                printf("\nSearch for: '%s' found '%d' records\n\n", argv[2], rec_match);
                 return (EXIT_SUCCESS);
 
             } else {
@@ -71,12 +69,11 @@ int main(int argc, char **argv) {
 
         /* @note NEW : add a new acronym via user prompts */
         if (strcmp(argv[1], "-n") == 0 || strcmp(argv[1], "--new") == 0) {
-            int add_worked = new_acronym(&amtdb);
-            if (add_worked) {
-                printf("\nADD DONE");
+             if (new_acronym(&amtdb)) {
+                printf("\nADD DONE\n");
                 return (EXIT_SUCCESS);
             } else {
-                fprintf(stderr, "ERROR: failed to complete adding new record.");
+                fprintf(stderr, "ERROR: failed to complete adding new record.\n");
                 exit(EXIT_FAILURE);
             }
         }
@@ -89,16 +86,15 @@ int main(int argc, char **argv) {
                 fprintf(stderr, "DEBUG: parsed Record ID is: '%ld'\n",record_ID);
                 #endif
                 if ( record_ID > 0 && record_ID <= amtdb.maxrecid) {
-                    const int del_worked = del_acro_rec((int)record_ID,&amtdb);
-                    if (del_worked) {
-                        printf("\nDELETE DONE");
+                    if (del_acro_rec((int)record_ID, &amtdb)) {
+                        printf("\nDELETE DONE\n");
                         return (EXIT_SUCCESS);
                     } else {
-                        fprintf(stderr, "ERROR: failed to complete deleting the record.");
+                        fprintf(stderr, "ERROR: failed to complete deleting the record.\n");
                         exit(EXIT_FAILURE);
                     }
                 } else {
-                    fprintf(stderr, "ERROR: invalid record ID '%ld' - out of range.",record_ID);
+                    fprintf(stderr, "ERROR: invalid record ID '%ld' - out of range.\n",record_ID);
                     exit(EXIT_FAILURE);
                 }
             } else {
@@ -122,16 +118,15 @@ int main(int argc, char **argv) {
                 fprintf(stderr, "DEBUG: parsed Record ID is: '%ld'\n",record_ID);
                 #endif
                 if (record_ID > 0 && record_ID <= amtdb.maxrecid) {
-                    const int update_worked = update_acro_rec((int)record_ID,&amtdb);
-                    if (update_worked) {
-                        printf("\nUPDATE DONE");
+                    if (update_acro_rec((int)record_ID, &amtdb)) {
+                        printf("\nUPDATE DONE\n");
                         return (EXIT_SUCCESS);
                     } else {
-                        fprintf(stderr, "ERROR: failed to complete updating the record.");
+                        fprintf(stderr, "ERROR: failed to complete updating the record.\n");
                         exit(EXIT_FAILURE);
                     }
                 } else {
-                    fprintf(stderr, "ERROR: invalid record ID '%ld' - out of range.",record_ID);
+                    fprintf(stderr, "ERROR: invalid record ID '%ld' - out of range.\n",record_ID);
                     exit(EXIT_FAILURE);
                 }
             } else {
@@ -156,10 +151,8 @@ int main(int argc, char **argv) {
         /* no matching command lines options - default action to search */
         if (strlen(argv[1]) > 0)  {
             const int rec_match = do_acronym_search(argv[1],&amtdb);
-            printf("\nDatabase search found '%'d' matching records\n",
-                   rec_match);
+            printf("\nSearch for: '%s' found '%d' records\n\n", argv[1], rec_match);
             return (EXIT_SUCCESS);
-
         } else {
             fprintf(stderr, "\nERROR: for '-s' or '--search' option please provide "
                             "an acronym to search for.\n");
@@ -208,12 +201,11 @@ void show_help(void) {
            "  -h    Help   : show this help information\n"
            "  -n    New    : add a new acronym record to the database\n"
            "  -s ?  Search : find an acronym where ? == acronym to locate\n"
-           "  -u ?  Update : update an acronym where ? == ID of record to update\n");
+           "  -u ?  Update : update an acronym where ? == ID of record to update\n\n");
 }
 
 void exit_cleanup() {
     if (amtdb.db == NULL) {
-        printf("\nNo SQLite database shutdown required\n\nAll is well\n");
         exit(EXIT_SUCCESS);
     }
 
@@ -224,12 +216,6 @@ void exit_cleanup() {
                 sqlite3_errstr(rc));
         exit(EXIT_FAILURE);
     }
-
     sqlite3_shutdown();
-    printf("\n"
-           "Completed SQLite database shutdown\n"
-           "Run  with '-h' for help with available command line flags\n\n"
-           "All is well\n");
-
     exit(EXIT_SUCCESS);
 }

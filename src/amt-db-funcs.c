@@ -292,21 +292,24 @@ char *get_last_acronym(amtdb_struct *amtdb)
 /********************************************************/
 /* SEARCH FOR A NEW RECORD                              */
 /* ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯                              */
-/* select rowid,Acronym,Definition,                     */
-/* Description,Source from ACRONYMS                     */
-/* where Acronym like ? COLLATE NOCASE ORDER BY Source; */
+/* "Select rowid, ifnull(Acronym,''), "                 */
+/* "ifnull(Definition,''), "                            */
+/* "ifnull(Source,''), "                                */
+/* "ifnull(Description,'') "                            */
+/* "from Acronyms where Acronym like ?1 COLLATE "       */
+/* " NOCASE ORDER BY Source";                           */
 /********************************************************/
+
 int do_acronym_search(char *findme, amtdb_struct *amtdb)
 {
-
-    //const char *data = NULL;     	    /* data returned from SQL stmt run */
     sqlite3_stmt *stmt = NULL;   	    /* pre-prepared SQL query statement */
 
-    printf("\nSearching for: '%s' in database...\n\n", findme);
-
     int rc = sqlite3_prepare_v2(amtdb->db,
-                            "select rowid,Acronym,Definition,Description,"
-                            "Source from ACRONYMS where Acronym like ? "
+                            "select rowid,ifnull(Acronym,''), "
+                            "ifnull(Definition,''), "
+                            "ifnull(Source,''), "
+                            "ifnull(Description,'') "
+                            "from ACRONYMS where Acronym like ? "
                             "COLLATE NOCASE ORDER BY Source;",
                             -1, &stmt, NULL);
 
@@ -324,13 +327,13 @@ int do_acronym_search(char *findme, amtdb_struct *amtdb)
 
     int search_rec_count = 0;
     while (sqlite3_step(stmt) == SQLITE_ROW) {
-        printf("ID:          %s\n", (const char *)sqlite3_column_text(stmt, 0));
-        printf("ACRONYM:     '%s' is: %s.\n",
+        printf("\nID:          %s\n", (const char *)sqlite3_column_text(stmt, 0));
+        printf("ACRONYM:     '%s' is: '%s'.\n",
                (const char *)sqlite3_column_text(stmt, 1),
                (const char *)sqlite3_column_text(stmt, 2));
-        printf("DESCRIPTION: %s\n", (const char *)sqlite3_column_text(stmt, 3));
-        printf("SOURCE:      %s\n\n",
-               (const char *)sqlite3_column_text(stmt, 4));
+        printf("SOURCE:      '%s'\n",
+               (const char *)sqlite3_column_text(stmt, 3));
+        printf("DESCRIPTION: %s\n", (const char *)sqlite3_column_text(stmt, 4));
         search_rec_count++;
     }
 
@@ -345,16 +348,13 @@ int do_acronym_search(char *findme, amtdb_struct *amtdb)
 /* insert into ACRONYMS(Acronym,Definition,Description,Source) */
 /* values(?,?,?,?);                                            */
 /***************************************************************/
-int new_acronym(amtdb_struct *amtdb)
+bool new_acronym(amtdb_struct *amtdb)
 {
-    //const char *data = NULL;     	    /* data returned from SQL stmt run */
-    sqlite3_stmt *stmt = NULL;   	    /* pre-prepared SQL query statement */
+    sqlite3_stmt *stmt = NULL;
     set_rec_count(amtdb);
 
     printf("\nAdding a new record...\n");
-    printf("\nNote: To abort the input of a new record - press "
-           "'Ctrl + "
-           "c'\n\n");
+    printf("\nNote: To abort the input of a new record - press 'Ctrl + c'\n\n");
 
     char *complete = NULL;
     char *n_acro = NULL;
@@ -401,7 +401,7 @@ int new_acronym(amtdb_struct *amtdb)
                 free(n_acro_src);
             }
             clear_history();
-            exit(EXIT_FAILURE);
+            return false;
         }
     }
 
@@ -431,7 +431,7 @@ int new_acronym(amtdb_struct *amtdb)
             free(n_acro_src);
         }
         clear_history();
-        exit(EXIT_FAILURE);
+        return false;
     }
 
     rc = sqlite3_exec(amtdb->db, sql_ins, NULL, NULL, NULL);
@@ -454,7 +454,7 @@ int new_acronym(amtdb_struct *amtdb)
             free(n_acro_src);
         }
         clear_history();
-        exit(EXIT_FAILURE);
+        return false;
     }
 
     sqlite3_finalize(stmt);
@@ -488,7 +488,7 @@ int new_acronym(amtdb_struct *amtdb)
            " %'d (was %'d).\n",
            (amtdb->totalrec - amtdb->prevtotalrec), amtdb->totalrec, amtdb->prevtotalrec);
 
-    return 0;
+    return true;
 }
 
 /********************************************************************/
@@ -500,11 +500,11 @@ int new_acronym(amtdb_struct *amtdb)
 /*                                                                  */
 /* delete from ACRONYMS where rowid = ?;                            */
 /********************************************************************/
-int del_acro_rec(int del_rec_id, amtdb_struct *amtdb)
+bool del_acro_rec(int del_rec_id, amtdb_struct *amtdb)
 {
-    //const char *data = NULL;     	    /* data returned from SQL stmt run */
-    sqlite3_stmt *stmt = NULL;   	    /* pre-prepared SQL query statement */
+    sqlite3_stmt *stmt = NULL;
     set_rec_count(amtdb);
+
     printf("\nDeleting an acronym record...\n");
     printf("\nNote: To abort the delete of a record - press 'Ctrl "
            "+ c'\n\n");
@@ -554,7 +554,7 @@ int del_acro_rec(int del_rec_id, amtdb_struct *amtdb)
                 if (cont_del != NULL) {
                     free(cont_del);
                 }
-                exit(EXIT_FAILURE);
+                return false;
             }
 
             rc = sqlite3_bind_int(stmt, 1, del_rec_id);
@@ -563,7 +563,7 @@ int del_acro_rec(int del_rec_id, amtdb_struct *amtdb)
                 if (cont_del != NULL) {
                     free(cont_del);
                 }
-                exit(EXIT_FAILURE);
+                return false;
             }
 
             rc = sqlite3_step(stmt);
@@ -572,7 +572,7 @@ int del_acro_rec(int del_rec_id, amtdb_struct *amtdb)
                 if (cont_del != NULL) {
                     free(cont_del);
                 }
-                exit(EXIT_FAILURE);
+                return false;
             }
 
             /* free readline memory allocated */
@@ -598,9 +598,9 @@ int del_acro_rec(int del_rec_id, amtdb_struct *amtdb)
     set_rec_count(amtdb);
     printf("Deleted '%d' record. Total database record count is now"
            " %'d (was %'d).\n",
-           (amtdb->totalrec - amtdb->prevtotalrec), amtdb->totalrec, amtdb->prevtotalrec);
+           (amtdb->prevtotalrec - amtdb->totalrec), amtdb->totalrec, amtdb->prevtotalrec);
 
-    return delete_rec_count;
+    return true;
 }
 
 /******************************************/
@@ -610,8 +610,7 @@ int del_acro_rec(int del_rec_id, amtdb_struct *amtdb)
 /******************************************/
 void get_acro_src(amtdb_struct *amtdb)
 {
-    //const char *data = NULL;     	    /* data returned from SQL stmt run */
-    sqlite3_stmt *stmt = NULL;   	    /* pre-prepared SQL query statement */
+    sqlite3_stmt *stmt = NULL;
     int rc = sqlite3_prepare_v2(amtdb->db,
                             "select distinct(source) "
                             "from acronyms order by source;",
@@ -649,12 +648,11 @@ void get_acro_src(amtdb_struct *amtdb)
 /*                                                                  */
 /* update                           */
 /********************************************************************/
-int update_acro_rec(int update_rec_id, amtdb_struct *amtdb)
+bool update_acro_rec(int update_rec_id, amtdb_struct *amtdb)
 {
-    //const char *data = NULL;     	    /* data returned from SQL stmt run */
-    //const char *data = NULL;     	    /* data returned from SQL stmt run */
-    sqlite3_stmt *stmt = NULL;   	    /* pre-prepared SQL query statement */
+    sqlite3_stmt *stmt = NULL;
     set_rec_count(amtdb);
+
     printf("\nUpdating an acronym record...\n");
     printf("\nNote: To abort the update of a record - press 'Ctrl "
            "+ c'\n\n");
@@ -673,13 +671,13 @@ int update_acro_rec(int update_rec_id, amtdb_struct *amtdb)
 
     if (rc != SQLITE_OK) {
         fprintf(stderr, "SQL prepare error: %s\n", sqlite3_errmsg(amtdb->db));
-        exit(EXIT_FAILURE);
+        return false;
     }
 
     rc = sqlite3_bind_int(stmt, 1, update_rec_id);
     if (rc != SQLITE_OK) {
         fprintf(stderr, "SQL bind error: %s\n", sqlite3_errmsg(amtdb->db));
-        exit(EXIT_FAILURE);
+        return false;
     }
 
     int update_rec_count = 0;
@@ -755,7 +753,7 @@ int update_acro_rec(int update_rec_id, amtdb_struct *amtdb)
                         free(u_acro_src);
                     }
                     clear_history();
-                    exit(EXIT_FAILURE);
+                    return false;
                 }
             }
 
@@ -788,14 +786,14 @@ int update_acro_rec(int update_rec_id, amtdb_struct *amtdb)
                     free(u_acro_src);
                 }
                 clear_history();
-                exit(EXIT_FAILURE);
+                return false;
             }
 
             /* bind in the record id to UPDATE */
             rc = sqlite3_bind_int(stmt, 1, update_rec_id);
             if (rc != SQLITE_OK) {
                 fprintf(stderr, "SQL bind error: %s\n", sqlite3_errmsg(amtdb->db));
-                exit(EXIT_FAILURE);
+                return false;
             }
 
             /* reset update_rec_count so can re-use here */
@@ -829,7 +827,7 @@ int update_acro_rec(int update_rec_id, amtdb_struct *amtdb)
                     free(u_acro_src);
                 }
                 clear_history();
-                exit(EXIT_FAILURE);
+                return false;
             }
 
             /* capture number of Sqlite database changes made in
@@ -888,5 +886,5 @@ int update_acro_rec(int update_rec_id, amtdb_struct *amtdb)
                    amtdb->totalrec, amtdb->totalrec, amtdb->prevtotalrec);
         }
     }
-    return amtdb->totalrec;
+    return true;
 }
