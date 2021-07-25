@@ -7,12 +7,11 @@
 # include <malloc.h>    /* free for use with strdup */
 #endif
 
-#include <locale.h>        /* number output formatting with commas */
-#include <stdio.h>        /* printf */
-#include <stdlib.h>        /* getenv */
-#include <string.h>        /* strlen strdup */
-#include <unistd.h>        /* strdup access */
-#include <ctype.h>      /* isdigit */
+#include <locale.h>     /* number output formatting with commas */
+#include <stdio.h>      /* printf */
+#include <stdlib.h>     /* getenv */
+#include <string.h>     /* strlen strdup */
+
 
 int main(int argc, char **argv) {
     atexit(exit_cleanup);
@@ -29,7 +28,6 @@ int main(int argc, char **argv) {
         fprintf(stderr, "ERROR: unable to set program name\n");
     }
 
-    print_start_screen(prog_name);
     check4DB(prog_name);
 
     sqlite3_initialize();
@@ -164,7 +162,7 @@ int main(int argc, char **argv) {
 
         /* @note VERSION : update an acronym record */
         if (strcmp(argv[1], "-v") == 0 || strcmp(argv[1], "--version") == 0) {
-            printf("TODO: version");
+            display_version(prog_name);
             return (EXIT_SUCCESS);
         }
 
@@ -183,6 +181,7 @@ int main(int argc, char **argv) {
 
     } else {  /* NO COMMAND LINE ARGS PROVIDED */
             fprintf(stderr,"\nERROR: no command lines argument provided.\n");
+            display_version(prog_name);
             show_help();
             exit(EXIT_FAILURE);
     }
@@ -217,13 +216,27 @@ int main(int argc, char **argv) {
         exit(EXIT_SUCCESS);
     }
 
-    void print_start_screen(const char *prog_name) {
-        printf("\n"
-               "\t\tAcronym Management Tool\n"
-               "\t\t¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯\n"
-               "Summary:\n"
-               " - '%s' version is: %s complied with SQLite version: %s\n",
-               prog_name, appversion, SQLITE_VERSION);
+    void display_version(const char *prog_name) {
+
+        /* Check build flag used when program was compiled */
+        #if DEBUG
+            char Build_Type[] = "Debug";
+        #else
+            char Build_Type[] = "Release";
+        #endif
+
+        printf("\n'%s' version is: '%s'.\n",prog_name, appversion);
+        printf("Compiled on: '%s @ %s' with C source built as '%s'.\n",__DATE__,__TIME__,Build_Type);
+        printf("Complied with SQLite version: %s\n", SQLITE_VERSION);
+        puts("Copyright (c) 2021 Simon Rowe.\n");
+        puts("For licenses and further information visit:");
+        puts("- Application      : https://github.com/wiremoons/acroman/");
+        puts("- SQLite database  :  https://www.sqlite.org/\n");
+
+        if ( getenv("NO_COLOR") ) {
+            puts("\n'NO_COLOR' environment exist as: https://no-color.org/");
+        }
+
     }
 
     void show_help(void) {
