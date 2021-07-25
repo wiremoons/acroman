@@ -28,29 +28,14 @@
 #define MAIN_H_
 
 #include "amt-db-funcs.h" /* manages the database access for the application */
+#include "types.h"        /* Structure to manage SQLite database information */
 #include "sqlite3.h"      /* SQLite header */
 
-#include <stdlib.h> /* to allow NULL to be used for globals var declarations */
+const char amt_version[] = "0.7.0";    /* set the version of the app here */
+amtdb_struct amtdb;                    /* Declared globally for 'atexit()'. See 'types.h' */
 
-/*
- *   APPLICATION GLOBAL VARIABLES
- */
-
-char *dbfile = "";  			    /* path and name of acronyms database filename */
-sqlite3 *db = NULL; 			    /* handle to the database */
-int rc = 0;         			    /* returned result codes from calling SQLite functions */
-const char *data = NULL;     	    /* data returned from SQL stmt run */
-sqlite3_stmt *stmt = NULL;   	    /* pre-prepared SQL query statement */
-const char appversion[] = "0.6.1"; 	/* set the version of the app here */
-int help = 0;           		    /* control help outputs request 0 == off | 1 == on */
-char *findme = NULL;    		    /* string request on command line for acronym search */
-int del_rec_id = -1;    		    /* database record id (rowid) used to delete records */
-int newrec = 0;         		    /* request to add a new record 0 == off | 1 == on */
-int update_rec_id = -1; 		    /* database record id (rowid) used to update records */
-
-
-void exit_cleanup(void);
-void show_help(void);
-void display_version(const char *prog_name);
+void exit_cleanup(void);                       /* Run by 'atexit()' on normal program exit */
+void show_help(void);                          /* display help and usage information to screen */
+void display_version(const char *prog_name);   /* display program version details */
 
 #endif // MAIN_H_

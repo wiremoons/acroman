@@ -12,8 +12,10 @@
 #include <stdlib.h>     /* getenv */
 #include <string.h>     /* strlen strdup */
 
-
 int main(int argc, char **argv) {
+
+    //amtdb_struct amtdb;
+
     atexit(exit_cleanup);
     setlocale(LC_NUMERIC, "");
     /* Set the default locale values according to environment variables. */
@@ -28,23 +30,26 @@ int main(int argc, char **argv) {
         fprintf(stderr, "ERROR: unable to set program name\n");
     }
 
-    check4DB(prog_name);
-
-    sqlite3_initialize();
-    rc = sqlite3_open_v2(dbfile, &db,
-                         SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, NULL);
-    if (rc != SQLITE_OK) {
+    if (!check4DBFile(prog_name, &amtdb)) {
+        fprintf(stderr,"\n\tERROR: No suitable database file can be located - "
+                       "program will exit\n");
         exit(EXIT_FAILURE);
     }
 
-    int totalrec = get_rec_count();
+    if (!initialise_database(&amtdb)) {
+        fprintf(stderr,"\n\tERROR: database initialisation failed - "
+                       "program will exit\n");
+        exit(EXIT_FAILURE);
+    }
+
+    int totalrec = get_rec_count(&amtdb);
     printf(" - Current record count is: %'d\n", totalrec);
 
     #if DEBUG
         fprintf(stderr, "DEBUG: getting last acronym.\n");
     #endif
 
-    char *lastacro = get_last_acronym();
+    char *lastacro = get_last_acronym(&amtdb);
     printf(" - Newest acronym is: %s\n", lastacro);
     if (lastacro != NULL) {
         free(lastacro);
@@ -70,7 +75,7 @@ int main(int argc, char **argv) {
         /* @note SEARCH : search for provided acronym */
         if (strcmp(argv[1], "-s") == 0 || strcmp(argv[1], "--search") == 0) {
             if (argc > 2 && strlen(argv[2]) > 0) {
-                const int rec_match = do_acronym_search(argv[2]);
+                const int rec_match = do_acronym_search(argv[2],&amtdb);
                 printf("\nDatabase search found '%'d' matching records\n",
                        rec_match);
                 return (EXIT_SUCCESS);
@@ -84,7 +89,7 @@ int main(int argc, char **argv) {
 
         /* @note NEW : add a new acronym via user prompts */
         if (strcmp(argv[1], "-n") == 0 || strcmp(argv[1], "--new") == 0) {
-            int add_worked = new_acronym();
+            int add_worked = new_acronym(&amtdb);
             if (add_worked) {
                 printf("\nADD DONE");
                 return (EXIT_SUCCESS);
@@ -102,7 +107,7 @@ int main(int argc, char **argv) {
                 fprintf(stderr, "DEBUG: parsed Record ID is: '%ld'\n",record_ID);
                 #endif
                 if ( record_ID > 0 && record_ID <= totalrec) {
-                    const int del_worked = del_acro_rec((int)record_ID);
+                    const int del_worked = del_acro_rec((int)record_ID,&amtdb);
                     if (del_worked) {
                         printf("\nDELETE DONE");
                         return (EXIT_SUCCESS);
@@ -135,7 +140,7 @@ int main(int argc, char **argv) {
                 fprintf(stderr, "DEBUG: parsed Record ID is: '%ld'\n",record_ID);
                 #endif
                 if (record_ID > 0 && record_ID <= totalrec) {
-                    const int update_worked = update_acro_rec((int)record_ID);
+                    const int update_worked = update_acro_rec((int)record_ID,&amtdb);
                     if (update_worked) {
                         printf("\nUPDATE DONE");
                         return (EXIT_SUCCESS);
@@ -168,7 +173,7 @@ int main(int argc, char **argv) {
 
         /* no matching command lines options - default action to search */
         if (strlen(argv[1]) > 0)  {
-            const int rec_match = do_acronym_search(argv[1]);
+            const int rec_match = do_acronym_search(argv[1],&amtdb);
             printf("\nDatabase search found '%'d' matching records\n",
                    rec_match);
             return (EXIT_SUCCESS);
@@ -186,67 +191,62 @@ int main(int argc, char **argv) {
             exit(EXIT_FAILURE);
     }
     //exit main()
-    return (EXIT_SUCCESS);
 }
 
-    void exit_cleanup(void) {
-        if (db == NULL) {
-            printf("\nNo SQLite database shutdown required\n\nAll is well\n");
-            exit(EXIT_SUCCESS);
-        }
+void display_version(const char *prog_name) {
 
-        rc = sqlite3_close_v2(db);
-        if (rc != SQLITE_OK) {
-            fprintf(stderr,
-                    "\nWARNING: error '%s' when trying to close the database\n",
-                    sqlite3_errstr(rc));
-            exit(EXIT_FAILURE);
-        }
+    /* Check build flag used when program was compiled */
+    #if DEBUG
+        char Build_Type[] = "Debug";
+    #else
+        char Build_Type[] = "Release";
+    #endif
 
-        sqlite3_shutdown();
-        printf("\n"
-               "Completed SQLite database shutdown\n"
-               "Run  with '-h' for help with available command line flags\n\n"
-               "All is well\n");
+    printf("\n'%s' version is: '%s'.\n", prog_name, amt_version);
+    printf("Compiled on: '%s @ %s' with C source built as '%s'.\n",__DATE__,__TIME__,Build_Type);
+    printf("Complied with SQLite version: %s\n", SQLITE_VERSION);
+    puts("Copyright (c) 2021 Simon Rowe.\n");
+    puts("For licenses and further information visit:");
+    puts("- Application      : https://github.com/wiremoons/acroman/");
+    puts("- SQLite database  :  https://www.sqlite.org/\n");
 
-        /* free any global varables below */
-        if (findme != NULL) {
-            free(findme);
-        }
+    if ( getenv("NO_COLOR") ) {
+        puts("\n'NO_COLOR' environment exist as: https://no-color.org/");
+    }
+
+}
+
+void show_help(void) {
+    printf("\n"
+           "Help Summary:\n"
+           "The following command line switches can be used:\n"
+           "\n"
+           "  -d ?  Delete : remove an acronym where ? == ID of record to delete\n"
+           "  -h    Help   : show this help information\n"
+           "  -n    New    : add a new acronym record to the database\n"
+           "  -s ?  Search : find an acronym where ? == acronym to locate\n"
+           "  -u ?  Update : update an acronym where ? == ID of record to update\n");
+}
+
+void exit_cleanup() {
+    if (amtdb.db == NULL) {
+        printf("\nNo SQLite database shutdown required\n\nAll is well\n");
         exit(EXIT_SUCCESS);
     }
 
-    void display_version(const char *prog_name) {
-
-        /* Check build flag used when program was compiled */
-        #if DEBUG
-            char Build_Type[] = "Debug";
-        #else
-            char Build_Type[] = "Release";
-        #endif
-
-        printf("\n'%s' version is: '%s'.\n",prog_name, appversion);
-        printf("Compiled on: '%s @ %s' with C source built as '%s'.\n",__DATE__,__TIME__,Build_Type);
-        printf("Complied with SQLite version: %s\n", SQLITE_VERSION);
-        puts("Copyright (c) 2021 Simon Rowe.\n");
-        puts("For licenses and further information visit:");
-        puts("- Application      : https://github.com/wiremoons/acroman/");
-        puts("- SQLite database  :  https://www.sqlite.org/\n");
-
-        if ( getenv("NO_COLOR") ) {
-            puts("\n'NO_COLOR' environment exist as: https://no-color.org/");
-        }
-
+    int rc = sqlite3_close_v2(amtdb.db);
+    if (rc != SQLITE_OK) {
+        fprintf(stderr,
+                "\nWARNING: error '%s' when trying to close the database\n",
+                sqlite3_errstr(rc));
+        exit(EXIT_FAILURE);
     }
 
-    void show_help(void) {
-        printf("\n"
-               "Help Summary:\n"
-               "The following command line switches can be used:\n"
-               "\n"
-               "  -d ?  Delete : remove an acronym where ? == ID of record to delete\n"
-               "  -h    Help   : show this help information\n"
-               "  -n    New    : add a new acronym record to the database\n"
-               "  -s ?  Search : find an acronym where ? == acronym to locate\n"
-               "  -u ?  Update : update an acronym where ? == ID of record to update\n");
-    }
+    sqlite3_shutdown();
+    printf("\n"
+           "Completed SQLite database shutdown\n"
+           "Run  with '-h' for help with available command line flags\n\n"
+           "All is well\n");
+
+    exit(EXIT_SUCCESS);
+}

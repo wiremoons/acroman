@@ -1,4 +1,7 @@
-/* Acronym Management Tool (amt): amt.c */
+/* Acronym Management Tool (amt)
+ *
+ * amt-db-funcs.c : managed SQLite database functions
+ */
 
 #include "amt-db-funcs.h"
 
@@ -23,10 +26,13 @@
 /***********************************************************************/
 /* Run SQL query to obtain current number of acronyms in the database. */
 /***********************************************************************/
-int get_rec_count(void)
+int get_rec_count(amtdb_struct *amtdb)
 {
+    //const char *data = NULL;     	    /* data returned from SQL stmt run */
+    sqlite3_stmt *stmt = NULL;   	    /* pre-prepared SQL query statement */
     int totalrec = 0;
-    rc = sqlite3_prepare_v2(db, "select count(*) from ACRONYMS", -1, &stmt,
+
+    int rc = sqlite3_prepare_v2(amtdb->db, "select count(*) from ACRONYMS", -1, &stmt,
                             NULL);
 
     if (rc != SQLITE_OK) {
@@ -49,18 +55,15 @@ int get_rec_count(void)
 /* - 2 : file 'acronyms.db' in same location as the application */
 /* - 3 : TODO offer to create a new Database                    */
 /****************************************************************/
-void check4DB(const char *prog_name)
+bool check4DBFile(const char *prog_name, amtdb_struct *amtdb)
 {
-    bool run_ok;
 
     /* get database file from environment variable ACRODB first */
-    dbfile = getenv("ACRODB");
+    amtdb->dbfile = getenv("ACRODB");
     /* if the environment variable exists - check if its valid */
-    if (dbfile != NULL) {
-        run_ok = check_db_access();
-		/* if db found ok just return */
-        if (run_ok) {
-            return;
+    if (amtdb->dbfile != NULL) {
+        if (check_db_access(amtdb)){
+            return true;
         }
     }
 
@@ -80,7 +83,7 @@ void check4DB(const char *prog_name)
     if (new_dbfile == NULL) {
         perror("\nERROR: unable to allocate memory with "
                "malloc() for 'new_dbfile' and path\n");
-        exit(EXIT_FAILURE);
+        return false;
     }
 
     int x = snprintf(new_dbfile, new_dbfile_sz, "%s%s", dirname((char *)prog_name),
@@ -89,37 +92,32 @@ void check4DB(const char *prog_name)
     if (x == -1) {
         perror("\nERROR: unable to allocate memory with "
                "snprintf() for 'new_dbfile' and path\n");
-        exit(EXIT_FAILURE);
+        return false;
     }
 
     /* 'new_dbfile' is ready as it contains the path and the 			*/
     /* default db filename. To use it, now copy it our global var 		*/
     /* 'dbfile' ; then get rid of new_dbfile as it is done with 		*/
-    if ((dbfile = strdup(new_dbfile)) == NULL) {
+    if ((amtdb->dbfile = strdup(new_dbfile)) == NULL) {
         perror("\nERROR: unable to allocate memory with "
                "strdup() for 'new_dbfile' to 'dbfile' copy\n");
-        exit(EXIT_FAILURE);
+        return false;
     }
 
     /* debug code
        printf("\nnew_dbfile: '%s' and dbfile: '%s'\n", new_dbfile, dbfile);
     */
 
-    if (new_dbfile != NULL) {
-        free(new_dbfile);
-    }
+    free(new_dbfile);
 
     /* now recheck if the new_dbfile is suitable for use? */
-    run_ok = check_db_access();
-    if (run_ok) {
-        return;
+    if (check_db_access(amtdb)) {
+        return true;
     }
 
     /* run out of options to find a suitable database - exit */
     /* TODO : offer to create a new dbfile here! */
-    printf("\n\tWARNING: No suitable database file can be located - "
-           "program will exit\n");
-    exit(EXIT_FAILURE);
+    return false;
 }
 
 /**********************************************************************/
@@ -127,41 +125,65 @@ void check4DB(const char *prog_name)
 /* if it is accessible. If the file is located then print some stats  */
 /* on path, size and last modified time.                              */
 /**********************************************************************/
-bool check_db_access(void)
+bool check_db_access(amtdb_struct *amtdb)
 {
-    if (dbfile == NULL || strlen(dbfile) == 0) {
+    if (amtdb->dbfile == NULL || strlen(amtdb->dbfile) == 0) {
         fprintf(stderr,
                 "ERROR: The database file '%s'"
                 " is an empty string\n",
-                dbfile);
-        return (false);
+                amtdb->dbfile);
+        return false;
     }
 
-    if (access(dbfile, F_OK | R_OK) == -1) {
+    if (access(amtdb->dbfile, F_OK | R_OK) == -1) {
         fprintf(stderr,
                 "ERROR: The database file '%s'"
                 " is missing or is not accessible\n",
-                dbfile);
-        return (false);
+                amtdb->dbfile);
+        return false;
     }
 
-    printf(" - Database location: %s\n", dbfile);
+    printf(" - Database location: %s\n", amtdb->dbfile);
 
     struct stat sb;
     int check;
 
-    check = stat(dbfile, &sb);
+    check = stat(amtdb->dbfile, &sb);
 
     if (check) {
         perror("ERROR: call to 'stat' for database file "
                "failed\n");
-        return (false);
+        return false;
     }
 
     printf(" - Database size: %'lld bytes\n", sb.st_size);
     printf(" - Database last modified: %s\n", ctime(&sb.st_mtime));
 
-    return (true);
+    return true;
+}
+
+/**********************************************************************/
+/* Check the filename and path given for the acronym database and see */
+/* if it is accessible. If the file is located then print some stats  */
+/* on path, size and last modified time.                              */
+/**********************************************************************/
+bool initialise_database(amtdb_struct *amtdb) {
+
+    int rc = 0;
+
+    rc = sqlite3_initialize();
+    if (rc != SQLITE_OK) {
+        fprintf(stderr,"ERROR: 'sqlite3_initialize()' failed with: '%d'.",rc);
+        return false;
+    }
+
+    rc = sqlite3_open_v2(amtdb->dbfile, &amtdb->db,
+                         SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, NULL);
+    if (rc != SQLITE_OK) {
+        fprintf(stderr,"ERROR: attempt to open database failed with: '%d'.",rc);
+        return false;
+    }
+    return true;
 }
 
 /*************************************************************/
@@ -169,15 +191,17 @@ bool check_db_access(void)
 /* ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯                          */
 /* SELECT Acronym FROM acronyms Order by rowid DESC LIMIT 1; */
 /*************************************************************/
-char *get_last_acronym(void)
+char *get_last_acronym(amtdb_struct *amtdb)
 {
     char *acronym_name;
+    //const char *data = NULL;     	    /* data returned from SQL stmt run */
+    sqlite3_stmt *stmt = NULL;   	    /* pre-prepared SQL query statement */
 
-    rc = sqlite3_prepare_v2(
-        db, "SELECT Acronym FROM acronyms Order by rowid DESC LIMIT 1;", -1,
+    int rc = sqlite3_prepare_v2(
+        amtdb->db, "SELECT Acronym FROM acronyms Order by rowid DESC LIMIT 1;", -1,
         &stmt, NULL);
     if (rc != SQLITE_OK) {
-        fprintf(stderr, "SQL prepare error: %s\n", sqlite3_errmsg(db));
+        fprintf(stderr, "SQL prepare error: %s\n", sqlite3_errmsg(amtdb->db));
         exit(-1);
     }
 
@@ -201,25 +225,29 @@ char *get_last_acronym(void)
 /* Description,Source from ACRONYMS                     */
 /* where Acronym like ? COLLATE NOCASE ORDER BY Source; */
 /********************************************************/
-int do_acronym_search(char *findme)
+int do_acronym_search(char *findme, amtdb_struct *amtdb)
 {
+
+    //const char *data = NULL;     	    /* data returned from SQL stmt run */
+    sqlite3_stmt *stmt = NULL;   	    /* pre-prepared SQL query statement */
+
     printf("\nSearching for: '%s' in database...\n\n", findme);
 
-    rc = sqlite3_prepare_v2(db,
+    int rc = sqlite3_prepare_v2(amtdb->db,
                             "select rowid,Acronym,Definition,Description,"
                             "Source from ACRONYMS where Acronym like ? "
                             "COLLATE NOCASE ORDER BY Source;",
                             -1, &stmt, NULL);
 
     if (rc != SQLITE_OK) {
-        fprintf(stderr, "SQL prepare error: %s\n", sqlite3_errmsg(db));
+        fprintf(stderr, "SQL prepare error: %s\n", sqlite3_errmsg(amtdb->db));
         exit(EXIT_FAILURE);
     }
 
     rc = sqlite3_bind_text(stmt, 1, (const char *)findme, -1, SQLITE_STATIC);
 
     if (rc != SQLITE_OK) {
-        fprintf(stderr, "SQL bind error: %s\n", sqlite3_errmsg(db));
+        fprintf(stderr, "SQL bind error: %s\n", sqlite3_errmsg(amtdb->db));
         exit(EXIT_FAILURE);
     }
 
@@ -246,9 +274,11 @@ int do_acronym_search(char *findme)
 /* insert into ACRONYMS(Acronym,Definition,Description,Source) */
 /* values(?,?,?,?);                                            */
 /***************************************************************/
-int new_acronym(void)
+int new_acronym(amtdb_struct *amtdb)
 {
-    int old_rec_cnt = get_rec_count();
+    //const char *data = NULL;     	    /* data returned from SQL stmt run */
+    sqlite3_stmt *stmt = NULL;   	    /* pre-prepared SQL query statement */
+    int old_rec_cnt = get_rec_count(amtdb);
 
     printf("\nAdding a new record...\n");
     printf("\nNote: To abort the input of a new record - press "
@@ -269,7 +299,7 @@ int new_acronym(void)
         n_acro_desc = readline("Enter the acronym description: \n\n");
         add_history(n_acro_desc);
 
-        get_acro_src();
+        get_acro_src(amtdb);
         n_acro_src = readline("\nEnter the acronym source: ");
         add_history(n_acro_src);
 
@@ -310,9 +340,9 @@ int new_acronym(void)
                               "values(%Q,%Q,%Q,%Q);",
                               n_acro, n_acro_expd, n_acro_desc, n_acro_src);
 
-    rc = sqlite3_prepare_v2(db, sql_ins, -1, &stmt, NULL);
+    int rc = sqlite3_prepare_v2(amtdb->db, sql_ins, -1, &stmt, NULL);
     if (rc != SQLITE_OK) {
-        fprintf(stderr, "SQL prepare error: %s\n", sqlite3_errmsg(db));
+        fprintf(stderr, "SQL prepare error: %s\n", sqlite3_errmsg(amtdb->db));
         /* Clean up readline allocated memory */
         if (complete != NULL) {
             free(complete);
@@ -333,9 +363,9 @@ int new_acronym(void)
         exit(EXIT_FAILURE);
     }
 
-    rc = sqlite3_exec(db, sql_ins, NULL, NULL, NULL);
+    rc = sqlite3_exec(amtdb->db, sql_ins, NULL, NULL, NULL);
     if (rc != SQLITE_OK) {
-        fprintf(stderr, "SQL exec error: %s\n", sqlite3_errmsg(db));
+        fprintf(stderr, "SQL exec error: %s\n", sqlite3_errmsg(amtdb->db));
         /* Clean up readline allocated memory */
         if (complete != NULL) {
             free(complete);
@@ -381,7 +411,7 @@ int new_acronym(void)
     }
     clear_history();
 
-    int new_rec_cnt = get_rec_count();
+    int new_rec_cnt = get_rec_count(amtdb);
     printf("Inserted '%d' new record. Total database record count "
            "is now"
            " %'d (was %'d).\n",
@@ -399,28 +429,30 @@ int new_acronym(void)
 /*                                                                  */
 /* delete from ACRONYMS where rowid = ?;                            */
 /********************************************************************/
-int del_acro_rec(int del_rec_id)
+int del_acro_rec(int del_rec_id, amtdb_struct *amtdb)
 {
-    int old_rec_cnt = get_rec_count();
+    //const char *data = NULL;     	    /* data returned from SQL stmt run */
+    sqlite3_stmt *stmt = NULL;   	    /* pre-prepared SQL query statement */
+    int old_rec_cnt = get_rec_count(amtdb);
     printf("\nDeleting an acronym record...\n");
     printf("\nNote: To abort the delete of a record - press 'Ctrl "
            "+ c'\n\n");
 
     printf("\nSearching for record ID: '%d' in database...\n\n", del_rec_id);
 
-    rc = sqlite3_prepare_v2(db,
+    int rc = sqlite3_prepare_v2(amtdb->db,
                             "select rowid,Acronym,Definition,Description,"
                             "Source from ACRONYMS where rowid like ?;",
                             -1, &stmt, NULL);
 
     if (rc != SQLITE_OK) {
-        fprintf(stderr, "SQL prepare error: %s\n", sqlite3_errmsg(db));
+        fprintf(stderr, "SQL prepare error: %s\n", sqlite3_errmsg(amtdb->db));
         exit(EXIT_FAILURE);
     }
 
     rc = sqlite3_bind_int(stmt, 1, del_rec_id);
     if (rc != SQLITE_OK) {
-        fprintf(stderr, "SQL bind error: %s\n", sqlite3_errmsg(db));
+        fprintf(stderr, "SQL bind error: %s\n", sqlite3_errmsg(amtdb->db));
         exit(EXIT_FAILURE);
     }
 
@@ -442,12 +474,12 @@ int del_acro_rec(int del_rec_id)
         cont_del = readline("\nDelete above record? [ y/n ] : ");
         if (strcasecmp((const char *)cont_del, "y") == 0) {
 
-            rc = sqlite3_prepare_v2(db,
+            rc = sqlite3_prepare_v2(amtdb->db,
                                     "delete from ACRONYMS where "
                                     "rowid = ?;",
                                     -1, &stmt, NULL);
             if (rc != SQLITE_OK) {
-                fprintf(stderr, "SQL prepare error: %s\n", sqlite3_errmsg(db));
+                fprintf(stderr, "SQL prepare error: %s\n", sqlite3_errmsg(amtdb->db));
                 if (cont_del != NULL) {
                     free(cont_del);
                 }
@@ -456,7 +488,7 @@ int del_acro_rec(int del_rec_id)
 
             rc = sqlite3_bind_int(stmt, 1, del_rec_id);
             if (rc != SQLITE_OK) {
-                fprintf(stderr, "SQL bind error: %s\n", sqlite3_errmsg(db));
+                fprintf(stderr, "SQL bind error: %s\n", sqlite3_errmsg(amtdb->db));
                 if (cont_del != NULL) {
                     free(cont_del);
                 }
@@ -465,7 +497,7 @@ int del_acro_rec(int del_rec_id)
 
             rc = sqlite3_step(stmt);
             if (rc != SQLITE_DONE) {
-                fprintf(stderr, "SQL step error: %s\n", sqlite3_errmsg(db));
+                fprintf(stderr, "SQL step error: %s\n", sqlite3_errmsg(amtdb->db));
                 if (cont_del != NULL) {
                     free(cont_del);
                 }
@@ -492,7 +524,7 @@ int del_acro_rec(int del_rec_id)
                del_rec_id, delete_rec_count);
     }
 
-    int new_rec_cnt = get_rec_count();
+    int new_rec_cnt = get_rec_count(amtdb);
     printf("Deleted '%d' record. Total database record count is now"
            " %'d (was %'d).\n",
            (old_rec_cnt - new_rec_cnt), new_rec_cnt, old_rec_cnt);
@@ -505,9 +537,11 @@ int del_acro_rec(int del_rec_id)
 /* ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯        */
 /* select distinct(source) from acronyms; */
 /******************************************/
-void get_acro_src(void)
+void get_acro_src(amtdb_struct *amtdb)
 {
-    rc = sqlite3_prepare_v2(db,
+    //const char *data = NULL;     	    /* data returned from SQL stmt run */
+    sqlite3_stmt *stmt = NULL;   	    /* pre-prepared SQL query statement */
+    int rc = sqlite3_prepare_v2(amtdb->db,
                             "select distinct(source) "
                             "from acronyms order by source;",
                             -1, &stmt, NULL);
@@ -544,9 +578,12 @@ void get_acro_src(void)
 /*                                                                  */
 /* update                           */
 /********************************************************************/
-int update_acro_rec(int update_rec_id)
+int update_acro_rec(int update_rec_id, amtdb_struct *amtdb)
 {
-    int old_rec_cnt = get_rec_count();
+    //const char *data = NULL;     	    /* data returned from SQL stmt run */
+    //const char *data = NULL;     	    /* data returned from SQL stmt run */
+    sqlite3_stmt *stmt = NULL;   	    /* pre-prepared SQL query statement */
+    int old_rec_cnt = get_rec_count(amtdb);
     printf("\nUpdating an acronym record...\n");
     printf("\nNote: To abort the update of a record - press 'Ctrl "
            "+ c'\n\n");
@@ -556,21 +593,21 @@ int update_acro_rec(int update_rec_id)
     /* ifnull() is used to replace any database NULL fields with
        an empty string as NULL was causing issues with readline
        when saving a NULL value to add_history() */
-    rc =
-        sqlite3_prepare_v2(db,
+    int rc =
+        sqlite3_prepare_v2(amtdb->db,
                            "select rowid, ifnull(Acronym,''),"
                            " ifnull(Definition,''), ifnull(Description,''),"
                            " ifnull(Source,'') from ACRONYMS where rowid is ?;",
                            -1, &stmt, NULL);
 
     if (rc != SQLITE_OK) {
-        fprintf(stderr, "SQL prepare error: %s\n", sqlite3_errmsg(db));
+        fprintf(stderr, "SQL prepare error: %s\n", sqlite3_errmsg(amtdb->db));
         exit(EXIT_FAILURE);
     }
 
     rc = sqlite3_bind_int(stmt, 1, update_rec_id);
     if (rc != SQLITE_OK) {
-        fprintf(stderr, "SQL bind error: %s\n", sqlite3_errmsg(db));
+        fprintf(stderr, "SQL bind error: %s\n", sqlite3_errmsg(amtdb->db));
         exit(EXIT_FAILURE);
     }
 
@@ -616,7 +653,7 @@ int update_acro_rec(int update_rec_id)
                 add_history(u_acro_expd);
                 u_acro_desc = readline("Enter the acronym description: \n\n");
                 add_history(u_acro_desc);
-                get_acro_src();
+                get_acro_src(amtdb);
                 u_acro_src = readline("\nEnter the acronym source: ");
                 add_history(u_acro_src);
 
@@ -660,9 +697,9 @@ int update_acro_rec(int update_rec_id)
                                 "Source=%Q where rowid is ?;",
                                 u_acro, u_acro_expd, u_acro_desc, u_acro_src);
 
-            rc = sqlite3_prepare_v2(db, sql_update, -1, &stmt, NULL);
+            rc = sqlite3_prepare_v2(amtdb->db, sql_update, -1, &stmt, NULL);
             if (rc != SQLITE_OK) {
-                fprintf(stderr, "SQL prepare error: %s\n", sqlite3_errmsg(db));
+                fprintf(stderr, "SQL prepare error: %s\n", sqlite3_errmsg(amtdb->db));
                 /* Clean up readline allocated memory */
                 if (complete != NULL) {
                     free(complete);
@@ -686,7 +723,7 @@ int update_acro_rec(int update_rec_id)
             /* bind in the record id to UPDATE */
             rc = sqlite3_bind_int(stmt, 1, update_rec_id);
             if (rc != SQLITE_OK) {
-                fprintf(stderr, "SQL bind error: %s\n", sqlite3_errmsg(db));
+                fprintf(stderr, "SQL bind error: %s\n", sqlite3_errmsg(amtdb->db));
                 exit(EXIT_FAILURE);
             }
 
@@ -703,7 +740,7 @@ int update_acro_rec(int update_rec_id)
             }
 
             if (rc != SQLITE_OK) {
-                fprintf(stderr, "SQL exec error: %s\n", sqlite3_errmsg(db));
+                fprintf(stderr, "SQL exec error: %s\n", sqlite3_errmsg(amtdb->db));
                 /* Clean up readline allocated memory */
                 if (complete != NULL) {
                     free(complete);
@@ -726,7 +763,7 @@ int update_acro_rec(int update_rec_id)
 
             /* capture number of Sqlite database changes made in
                last transaction - should be one */
-            int db_changes = sqlite3_changes(db);
+            int db_changes = sqlite3_changes(amtdb->db);
 
             /* check for how many records were updated - should only
              * be one! */
@@ -773,7 +810,7 @@ int update_acro_rec(int update_rec_id)
             }
             clear_history();
 
-            int new_rec_cnt = get_rec_count();
+            int new_rec_cnt = get_rec_count(amtdb);
             printf("Updated '%d' record. Total database record count "
                    "is now"
                    " %'d (was %'d).\n",
