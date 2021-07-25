@@ -23,14 +23,19 @@
 #include <time.h>              /* stat file modification time */
 #include <unistd.h>            /* strdup access stat and FILE */
 
+
+
 /***********************************************************************/
 /* Run SQL query to obtain current number of acronyms in the database. */
 /***********************************************************************/
-int get_rec_count(amtdb_struct *amtdb)
+bool set_rec_count(amtdb_struct *amtdb)
 {
-    //const char *data = NULL;     	    /* data returned from SQL stmt run */
-    sqlite3_stmt *stmt = NULL;   	    /* pre-prepared SQL query statement */
-    int totalrec = 0;
+    sqlite3_stmt *stmt = NULL;
+
+    /* capture any previous record count if it exists */
+    if (amtdb->totalrec > 0) {
+        amtdb->prevtotalrec = amtdb->totalrec;
+    }
 
     int rc = sqlite3_prepare_v2(amtdb->db, "select count(*) from ACRONYMS", -1, &stmt,
                             NULL);
@@ -38,16 +43,41 @@ int get_rec_count(amtdb_struct *amtdb)
     if (rc != SQLITE_OK) {
         perror("\nERROR: unable to access the SQLite database to "
                "perform a record count\n");
-        exit(EXIT_FAILURE);
+        return false;
     }
 
     while (sqlite3_step(stmt) == SQLITE_ROW) {
-        totalrec = sqlite3_column_int(stmt, 0);
+        amtdb->totalrec = sqlite3_column_int(stmt, 0);
     }
 
     sqlite3_finalize(stmt);
-    return (totalrec);
+    return true;
 }
+
+/***********************************************************************/
+/* Run SQL query to obtain highest record ID number in the database. */
+/***********************************************************************/
+bool update_max_recid(amtdb_struct *amtdb)
+{
+    sqlite3_stmt *stmt = NULL;
+
+    int rc = sqlite3_prepare_v2(amtdb->db, "select MAX(rowid) from ACRONYMS", -1, &stmt,
+                                NULL);
+
+    if (rc != SQLITE_OK) {
+        perror("\nERROR: unable to access the SQLite database to "
+               "obtain the maximum record ID\n");
+        return false;
+    }
+
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
+        amtdb->maxrecid = sqlite3_column_int(stmt, 0);
+    }
+
+    sqlite3_finalize(stmt);
+    return true;
+}
+
 
 /****************************************************************/
 /* Checks for a valid database filename to open looking at:     */
@@ -143,8 +173,6 @@ bool check_db_access(amtdb_struct *amtdb)
         return false;
     }
 
-    printf(" - Database location: %s\n", amtdb->dbfile);
-
     struct stat sb;
     int check;
 
@@ -156,11 +184,41 @@ bool check_db_access(amtdb_struct *amtdb)
         return false;
     }
 
-    printf(" - Database size: %'lld bytes\n", sb.st_size);
-    printf(" - Database last modified: %s\n", ctime(&sb.st_mtime));
+    /* get the size of the database file */
+    amtdb->dbsize = sb.st_size;
+    /* ctime() returns pointer to a 26 character string */
+    amtdb->dblastmod = strndup(ctime(&sb.st_mtime),26);
+    if (amtdb->dblastmod == NULL) {
+        fprintf(stderr,
+                "ERROR: Failed to copy database modification time.\n");
+        return false;
+    }
 
     return true;
 }
+
+/**********************************************************************/
+/* Output the summary stats for the SQLite acronyms database          */
+/**********************************************************************/
+bool output_db_stats(amtdb_struct *amtdb)
+{
+    if ( strlen(amtdb->dbfile) <= 0 && strlen(amtdb->dblastmod) <= 0 && amtdb->dbsize < 0  && amtdb->totalrec < 0) {
+        fprintf(stderr,
+                "ERROR: The database status information for file '%s' is missing\n",
+                amtdb->dbfile);
+        return false;
+    }
+
+    printf("Database Summary:\n");
+    printf(" - Database location: %s\n", amtdb->dbfile);
+    printf(" - Database size: %'lld bytes\n", amtdb->dbsize);
+    printf(" - Database last modified: %s", amtdb->dblastmod);
+    printf(" - Database total record count: %d\n", amtdb->totalrec);
+    printf(" - Newest acronym is: %s\n", get_last_acronym(amtdb));
+
+    return true;
+}
+
 
 /**********************************************************************/
 /* Check the filename and path given for the acronym database and see */
@@ -183,6 +241,19 @@ bool initialise_database(amtdb_struct *amtdb) {
         fprintf(stderr,"ERROR: attempt to open database failed with: '%d'.",rc);
         return false;
     }
+
+    if (!update_max_recid(amtdb)) {
+        fprintf(stderr,
+                "ERROR: Failed to obtain the database maximum record ID.\n");
+        return false;
+    }
+
+    if (!set_rec_count(amtdb)) {
+        fprintf(stderr,
+                "ERROR: Failed to set the database record count.\n");
+        return false;
+    }
+
     return true;
 }
 
@@ -278,7 +349,7 @@ int new_acronym(amtdb_struct *amtdb)
 {
     //const char *data = NULL;     	    /* data returned from SQL stmt run */
     sqlite3_stmt *stmt = NULL;   	    /* pre-prepared SQL query statement */
-    int old_rec_cnt = get_rec_count(amtdb);
+    set_rec_count(amtdb);
 
     printf("\nAdding a new record...\n");
     printf("\nNote: To abort the input of a new record - press "
@@ -411,11 +482,11 @@ int new_acronym(amtdb_struct *amtdb)
     }
     clear_history();
 
-    int new_rec_cnt = get_rec_count(amtdb);
+    set_rec_count(amtdb);
     printf("Inserted '%d' new record. Total database record count "
            "is now"
            " %'d (was %'d).\n",
-           (new_rec_cnt - old_rec_cnt), new_rec_cnt, old_rec_cnt);
+           (amtdb->totalrec - amtdb->prevtotalrec), amtdb->totalrec, amtdb->prevtotalrec);
 
     return 0;
 }
@@ -433,7 +504,7 @@ int del_acro_rec(int del_rec_id, amtdb_struct *amtdb)
 {
     //const char *data = NULL;     	    /* data returned from SQL stmt run */
     sqlite3_stmt *stmt = NULL;   	    /* pre-prepared SQL query statement */
-    int old_rec_cnt = get_rec_count(amtdb);
+    set_rec_count(amtdb);
     printf("\nDeleting an acronym record...\n");
     printf("\nNote: To abort the delete of a record - press 'Ctrl "
            "+ c'\n\n");
@@ -524,10 +595,10 @@ int del_acro_rec(int del_rec_id, amtdb_struct *amtdb)
                del_rec_id, delete_rec_count);
     }
 
-    int new_rec_cnt = get_rec_count(amtdb);
+    set_rec_count(amtdb);
     printf("Deleted '%d' record. Total database record count is now"
            " %'d (was %'d).\n",
-           (old_rec_cnt - new_rec_cnt), new_rec_cnt, old_rec_cnt);
+           (amtdb->totalrec - amtdb->prevtotalrec), amtdb->totalrec, amtdb->prevtotalrec);
 
     return delete_rec_count;
 }
@@ -583,7 +654,7 @@ int update_acro_rec(int update_rec_id, amtdb_struct *amtdb)
     //const char *data = NULL;     	    /* data returned from SQL stmt run */
     //const char *data = NULL;     	    /* data returned from SQL stmt run */
     sqlite3_stmt *stmt = NULL;   	    /* pre-prepared SQL query statement */
-    int old_rec_cnt = get_rec_count(amtdb);
+    set_rec_count(amtdb);
     printf("\nUpdating an acronym record...\n");
     printf("\nNote: To abort the update of a record - press 'Ctrl "
            "+ c'\n\n");
@@ -810,12 +881,12 @@ int update_acro_rec(int update_rec_id, amtdb_struct *amtdb)
             }
             clear_history();
 
-            int new_rec_cnt = get_rec_count(amtdb);
+            set_rec_count(amtdb);
             printf("Updated '%d' record. Total database record count "
                    "is now"
                    " %'d (was %'d).\n",
-                   update_rec_count, new_rec_cnt, old_rec_cnt);
+                   amtdb->totalrec, amtdb->totalrec, amtdb->prevtotalrec);
         }
     }
-    return update_rec_count;
+    return amtdb->totalrec;
 }

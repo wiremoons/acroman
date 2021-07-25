@@ -14,8 +14,6 @@
 
 int main(int argc, char **argv) {
 
-    //amtdb_struct amtdb;
-
     atexit(exit_cleanup);
     setlocale(LC_NUMERIC, "");
     /* Set the default locale values according to environment variables. */
@@ -42,22 +40,6 @@ int main(int argc, char **argv) {
         exit(EXIT_FAILURE);
     }
 
-    int totalrec = get_rec_count(&amtdb);
-    printf(" - Current record count is: %'d\n", totalrec);
-
-    #if DEBUG
-        fprintf(stderr, "DEBUG: getting last acronym.\n");
-    #endif
-
-    char *lastacro = get_last_acronym(&amtdb);
-    printf(" - Newest acronym is: %s\n", lastacro);
-    if (lastacro != NULL) {
-        free(lastacro);
-    }
-
-    #if DEBUG
-    fprintf(stderr, "DEBUG: checking command line args\n");
-    #endif
 
     /** @note obtain any command line args from the user and action them */
     if (argc > 1) {
@@ -106,7 +88,7 @@ int main(int argc, char **argv) {
                 #if DEBUG
                 fprintf(stderr, "DEBUG: parsed Record ID is: '%ld'\n",record_ID);
                 #endif
-                if ( record_ID > 0 && record_ID <= totalrec) {
+                if ( record_ID > 0 && record_ID <= amtdb.maxrecid) {
                     const int del_worked = del_acro_rec((int)record_ID,&amtdb);
                     if (del_worked) {
                         printf("\nDELETE DONE");
@@ -139,7 +121,7 @@ int main(int argc, char **argv) {
                 #if DEBUG
                 fprintf(stderr, "DEBUG: parsed Record ID is: '%ld'\n",record_ID);
                 #endif
-                if (record_ID > 0 && record_ID <= totalrec) {
+                if (record_ID > 0 && record_ID <= amtdb.maxrecid) {
                     const int update_worked = update_acro_rec((int)record_ID,&amtdb);
                     if (update_worked) {
                         printf("\nUPDATE DONE");
@@ -187,6 +169,7 @@ int main(int argc, char **argv) {
     } else {  /* NO COMMAND LINE ARGS PROVIDED */
             fprintf(stderr,"\nERROR: no command lines argument provided.\n");
             display_version(prog_name);
+            output_db_stats(&amtdb);
             show_help();
             exit(EXIT_FAILURE);
     }

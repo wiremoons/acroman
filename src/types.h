@@ -9,6 +9,11 @@
 typedef struct AmtDB_Struct {
     char *dbfile;
     sqlite3 *db;
+    long long dbsize;
+    char *dblastmod;
+    int totalrec;
+    int prevtotalrec;
+    int maxrecid;
 } amtdb_struct;
 
 

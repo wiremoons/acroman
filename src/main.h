@@ -14,6 +14,7 @@
  * and deletion of records no longer required.
  *
  * created: 20 Jan 2016 - initial outline code written
+ * major update : July 2021 - refactored and improved source code and outputs
  *
  * The application uses the SQLite amalgamation source code files, so ensure
  * they are included in the same directory as this programs source code.
@@ -31,7 +32,7 @@
 #include "types.h"        /* Structure to manage SQLite database information */
 #include "sqlite3.h"      /* SQLite header */
 
-const char amt_version[] = "0.7.0";    /* set the version of the app here */
+const char amt_version[] = "0.7.1";    /* set the version of the app here */
 amtdb_struct amtdb;                    /* Declared globally for 'atexit()'. See 'types.h' */
 
 void exit_cleanup(void);                       /* Run by 'atexit()' on normal program exit */

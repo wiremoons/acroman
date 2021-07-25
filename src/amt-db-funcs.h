@@ -10,7 +10,7 @@
 #include "types.h"   /* Structure to manage SQLite database information */
 #include <stdbool.h> /* use of true / false booleans for declaration below*/
 
-int get_rec_count(amtdb_struct *amtdb);                         /* get current acronym record count */
+bool set_rec_count(amtdb_struct *amtdb);                        /* get current acronym record count */
 bool check4DBFile(const char *prog_name, amtdb_struct *amtdb);  /* ensure database exists and is accessible */
 bool check_db_access(amtdb_struct *amtdb);                      /* database file exists and can be accessed? */
 bool initialise_database(amtdb_struct *amtdb);                  /* initialise SQLite and open database file */
@@ -20,5 +20,7 @@ int new_acronym(amtdb_struct *amtdb);                           /* add a new rec
 void get_acro_src(amtdb_struct *amtdb);                         /* get a list of acronym sources */
 int del_acro_rec(int del_rec_id,amtdb_struct *amtdb);           /* delete a acronym record */
 int update_acro_rec(int update_rec_id,amtdb_struct *amtdb);     /* update a record in the database */
+bool output_db_stats(amtdb_struct *amtdb);
+bool update_max_recid(amtdb_struct *amtdb);
 
 #endif // AMT_DB_FUNCS_H_
