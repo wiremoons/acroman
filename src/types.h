@@ -6,9 +6,13 @@
 #ifndef AMT_TYPES_H
 #define AMT_TYPES_H
 
+#include <stdbool.h>
+
 typedef struct AmtDB_Struct {
     char *dbfile;
     sqlite3 *db;
+    bool db_OK;
+    char *prog_name;
     long long dbsize;
     char *dblastmod;
     int totalrec;

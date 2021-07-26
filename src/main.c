@@ -10,7 +10,7 @@
 #include <locale.h>     /* number output formatting with commas */
 #include <stdio.h>      /* printf */
 #include <stdlib.h>     /* getenv */
-#include <string.h>     /* strlen strdup */
+#include <string.h>     /* strlen strndup */
 
 int main(int argc, char **argv) {
 
@@ -19,24 +19,16 @@ int main(int argc, char **argv) {
     /* Set the default locale values according to environment variables. */
     // setlocale (LC_ALL, "");
 
+    /* ensure known state */
+    amtdb.db_OK = false;
+
     #if DEBUG
     fprintf(stderr, "DEBUG: the programs was built in 'debug' mode\n");
     #endif
 
-    const char *prog_name = argv[0];
-    if ((NULL == prog_name) | (strlen(prog_name) <= 0)) {
-        fprintf(stderr, "ERROR: unable to set program name\n");
-    }
 
-    if (!check4DBFile(prog_name, &amtdb)) {
-        fprintf(stderr,"\nERROR: No suitable database file can be located. Program will exit.\n");
-        exit(EXIT_FAILURE);
-    }
-
-    if (!initialise_database(&amtdb)) {
-        fprintf(stderr,"\n\tERROR: database initialisation failed - "
-                       "program will exit\n");
-        exit(EXIT_FAILURE);
+    if ((amtdb.prog_name = strndup(argv[0], strlen(argv[0]))) == NULL) {
+        perror("\nERROR: unable to set program name ");
     }
 
     /** @note obtain any command line args from the user and action them */
@@ -55,6 +47,7 @@ int main(int argc, char **argv) {
         /* @note SEARCH : search for provided acronym */
         if (strcmp(argv[1], "-s") == 0 || strcmp(argv[1], "--search") == 0) {
             if (argc > 2 && strlen(argv[2]) > 0) {
+                if (!bootstrap_db()) { return (EXIT_FAILURE); }
                 const int rec_match = do_acronym_search(argv[2],&amtdb);
                 printf("\nSearch for: '%s' found '%d' records\n\n", argv[2], rec_match);
                 return (EXIT_SUCCESS);
@@ -68,6 +61,7 @@ int main(int argc, char **argv) {
 
         /* @note NEW : add a new acronym via user prompts */
         if (strcmp(argv[1], "-n") == 0 || strcmp(argv[1], "--new") == 0) {
+             if (!bootstrap_db()) { return (EXIT_FAILURE); }
              if (new_acronym(&amtdb)) {
                 printf("\nADD DONE\n");
                 return (EXIT_SUCCESS);
@@ -80,6 +74,7 @@ int main(int argc, char **argv) {
         /* @note DELETE : delete an acronym record */
         if (strcmp(argv[1], "-d") == 0 || strcmp(argv[1], "--delete") == 0) {
             if ( argc > 2 ) {
+                if (!bootstrap_db()) { return (EXIT_FAILURE); }
                 long record_ID =  strtol(argv[2], NULL, 10);
                 #if DEBUG
                 fprintf(stderr, "DEBUG: parsed Record ID is: '%ld'\n",record_ID);
@@ -112,6 +107,7 @@ int main(int argc, char **argv) {
         /* @note UPDATE : update an acronym record */
         if (strcmp(argv[1], "-u") == 0 || strcmp(argv[1], "--update") == 0) {
             if ( argc > 2 ) {
+                if (!bootstrap_db()) { return (EXIT_FAILURE); }
                 long record_ID = strtol(argv[2], NULL, 10);
                 #if DEBUG
                 fprintf(stderr, "DEBUG: parsed Record ID is: '%ld'\n",record_ID);
@@ -143,12 +139,13 @@ int main(int argc, char **argv) {
 
         /* @note VERSION : update an acronym record */
         if (strcmp(argv[1], "-v") == 0 || strcmp(argv[1], "--version") == 0) {
-            display_version(prog_name);
+            display_version();
             return (EXIT_SUCCESS);
         }
 
         /* no matching command lines options - default action to search */
         if (strlen(argv[1]) > 0)  {
+            if (!bootstrap_db()) { return (EXIT_FAILURE); }
             const int rec_match = do_acronym_search(argv[1],&amtdb);
             printf("\nSearch for: '%s' found '%d' records\n\n", argv[1], rec_match);
             return (EXIT_SUCCESS);
@@ -160,15 +157,37 @@ int main(int argc, char **argv) {
 
     } else {  /* NO COMMAND LINE ARGS PROVIDED */
             fprintf(stderr,"\nERROR: no command lines argument provided.\n");
-            display_version(prog_name);
-            output_db_stats(&amtdb);
+            display_version();
+            if (bootstrap_db()) { output_db_stats(&amtdb); }
             show_help();
             exit(EXIT_FAILURE);
     }
     //exit main()
 }
 
-void display_version(const char *prog_name) {
+
+bool bootstrap_db(void) {
+
+    /* check for a valid database file */
+    if (!check4DBFile(&amtdb)) {
+        fprintf(stderr,"\nERROR: No suitable database file can be located. Program will exit.\n");
+        return false;
+    }
+
+    /* connect and obtain initial database information */
+    if (!initialise_database(&amtdb)) {
+        fprintf(stderr,"\n\tERROR: database initialisation failed. Program will exit\n");
+        return false;
+    }
+
+    /* set flag to show DB connection is good now */
+    amtdb.db_OK = true;
+    return true;
+
+}
+
+
+void display_version(void) {
 
     /* Check build flag used when program was compiled */
     #if DEBUG
@@ -177,7 +196,7 @@ void display_version(const char *prog_name) {
         char Build_Type[] = "Release";
     #endif
 
-    printf("\n'%s' version is: '%s'.\n", prog_name, amt_version);
+    printf("\n'%s' version is: '%s'.\n", amtdb.prog_name, amt_version);
     printf("Compiled on: '%s @ %s' with C source built as '%s'.\n",__DATE__,__TIME__,Build_Type);
     printf("Complied with SQLite version: %s\n", SQLITE_VERSION);
     puts("Copyright (c) 2021 Simon Rowe.\n");
@@ -203,7 +222,7 @@ void show_help(void) {
            "  -u ?  Update : update an acronym where ? == ID of record to update\n\n");
 }
 
-void exit_cleanup() {
+void exit_cleanup(void) {
     if (amtdb.db == NULL) {
         exit(EXIT_SUCCESS);
     }
@@ -216,5 +235,6 @@ void exit_cleanup() {
         exit(EXIT_FAILURE);
     }
     sqlite3_shutdown();
+    amtdb.db_OK = false;
     exit(EXIT_SUCCESS);
 }

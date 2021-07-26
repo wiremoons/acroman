@@ -85,7 +85,7 @@ bool update_max_recid(amtdb_struct *amtdb)
 /* - 2 : file 'acronyms.db' in same location as the application */
 /* - 3 : TODO offer to create a new Database                    */
 /****************************************************************/
-bool check4DBFile(const char *prog_name, amtdb_struct *amtdb)
+bool check4DBFile(amtdb_struct *amtdb)
 {
 
     /* get database file from environment variable ACRODB first */
@@ -106,7 +106,7 @@ bool check4DBFile(const char *prog_name, amtdb_struct *amtdb)
     /* tmp copy needed here as each call to dirname() below can change the	*/
     /* string being used in the call - so need one string copy for each 		*/
     /* successful call we need to make. This is a 'feature' of dirname() 		*/
-    char *tmp_dirname = strdup(prog_name);
+    char *tmp_dirname = strndup(amtdb->prog_name, strlen(amtdb->prog_name));
     size_t new_dbfile_sz = (sizeof(char) * (strlen(dirname(tmp_dirname)) +
                                             strlen("/acronyms.db") + 1));
     char *new_dbfile = malloc(new_dbfile_sz);
@@ -116,7 +116,7 @@ bool check4DBFile(const char *prog_name, amtdb_struct *amtdb)
         return false;
     }
 
-    int x = snprintf(new_dbfile, new_dbfile_sz, "%s%s", dirname((char *)prog_name),
+    int x = snprintf(new_dbfile, new_dbfile_sz, "%s%s", dirname((char *)amtdb->prog_name),
                      "/acronyms.db");
 
     if (x == -1) {
