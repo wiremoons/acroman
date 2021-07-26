@@ -29,8 +29,7 @@ int main(int argc, char **argv) {
     }
 
     if (!check4DBFile(prog_name, &amtdb)) {
-        fprintf(stderr,"\n\tERROR: No suitable database file can be located - "
-                       "program will exit\n");
+        fprintf(stderr,"\nERROR: No suitable database file can be located. Program will exit.\n");
         exit(EXIT_FAILURE);
     }
 

@@ -95,6 +95,9 @@ bool check4DBFile(const char *prog_name, amtdb_struct *amtdb)
         if (check_db_access(amtdb)){
             return true;
         }
+    } else {
+        fprintf(stderr,"ERROR: No database identified via environment variable 'ACRODB'.\n");
+        printf("Checking for a suitable database in same directory as the executable...\n");
     }
 
     /* nothing is set in environment variable ACRODB - so database 			*/
@@ -104,15 +107,12 @@ bool check4DBFile(const char *prog_name, amtdb_struct *amtdb)
     /* string being used in the call - so need one string copy for each 		*/
     /* successful call we need to make. This is a 'feature' of dirname() 		*/
     char *tmp_dirname = strdup(prog_name);
-
     size_t new_dbfile_sz = (sizeof(char) * (strlen(dirname(tmp_dirname)) +
                                             strlen("/acronyms.db") + 1));
-
     char *new_dbfile = malloc(new_dbfile_sz);
 
     if (new_dbfile == NULL) {
-        perror("\nERROR: unable to allocate memory with "
-               "malloc() for 'new_dbfile' and path\n");
+        perror("\nERROR: unable to allocate memory with malloc() for 'new_dbfile' and path\n");
         return false;
     }
 
@@ -120,8 +120,7 @@ bool check4DBFile(const char *prog_name, amtdb_struct *amtdb)
                      "/acronyms.db");
 
     if (x == -1) {
-        perror("\nERROR: unable to allocate memory with "
-               "snprintf() for 'new_dbfile' and path\n");
+        perror("\nERROR: unable to allocate memory with snprintf() for 'new_dbfile' and path\n");
         return false;
     }
 
@@ -129,8 +128,7 @@ bool check4DBFile(const char *prog_name, amtdb_struct *amtdb)
     /* default db filename. To use it, now copy it our global var 		*/
     /* 'dbfile' ; then get rid of new_dbfile as it is done with 		*/
     if ((amtdb->dbfile = strdup(new_dbfile)) == NULL) {
-        perror("\nERROR: unable to allocate memory with "
-               "strdup() for 'new_dbfile' to 'dbfile' copy\n");
+        perror("\nERROR: unable to allocate memory with strdup() for 'new_dbfile'\n");
         return false;
     }
 
@@ -147,6 +145,7 @@ bool check4DBFile(const char *prog_name, amtdb_struct *amtdb)
 
     /* run out of options to find a suitable database - exit */
     /* TODO : offer to create a new dbfile here! */
+    puts("TODO : offer to create a new database here\n");
     return false;
 }
 
@@ -159,17 +158,13 @@ bool check_db_access(amtdb_struct *amtdb)
 {
     if (amtdb->dbfile == NULL || strlen(amtdb->dbfile) == 0) {
         fprintf(stderr,
-                "ERROR: The database file '%s'"
-                " is an empty string\n",
-                amtdb->dbfile);
+                "ERROR: The database file '%s' is an empty string.\n",amtdb->dbfile);
         return false;
     }
 
     if (access(amtdb->dbfile, F_OK | R_OK) == -1) {
         fprintf(stderr,
-                "ERROR: The database file '%s'"
-                " is missing or is not accessible\n",
-                amtdb->dbfile);
+                "ERROR: The database file '%s' is missing or is not accessible.\n",amtdb->dbfile);
         return false;
     }
 
@@ -179,8 +174,7 @@ bool check_db_access(amtdb_struct *amtdb)
     check = stat(amtdb->dbfile, &sb);
 
     if (check) {
-        perror("ERROR: call to 'stat' for database file "
-               "failed\n");
+        perror("ERROR: call to 'stat' for database file failed.\n");
         return false;
     }
 
@@ -189,8 +183,7 @@ bool check_db_access(amtdb_struct *amtdb)
     /* ctime() returns pointer to a 26 character string */
     amtdb->dblastmod = strndup(ctime(&sb.st_mtime),26);
     if (amtdb->dblastmod == NULL) {
-        fprintf(stderr,
-                "ERROR: Failed to copy database modification time.\n");
+        perror("ERROR: Failed to copy database modification time.\n");
         return false;
     }
 
