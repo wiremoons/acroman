@@ -220,9 +220,7 @@ bool output_db_stats(amtdb_struct *amtdb)
 /**********************************************************************/
 bool initialise_database(amtdb_struct *amtdb) {
 
-    int rc = 0;
-
-    rc = sqlite3_initialize();
+    int rc = sqlite3_initialize();
     if (rc != SQLITE_OK) {
         fprintf(stderr,"ERROR: 'sqlite3_initialize()' failed with: '%d'.",rc);
         return false;
