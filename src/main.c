@@ -229,7 +229,8 @@ void display_version(void) {
     puts("Copyright (c) 2021 Simon Rowe.\n");
     puts("For licenses and further information visit:");
     puts("- Application      : https://github.com/wiremoons/acroman/");
-    puts("- SQLite database  :  https://www.sqlite.org/\n");
+    puts("- Linenoise        : https://github.com/antirez/linenoise");
+    puts("- SQLite database  : https://www.sqlite.org/\n");
 
     if ( getenv("NO_COLOR") ) {
         puts("\n'NO_COLOR' environment exist as: https://no-color.org/");

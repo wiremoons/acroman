@@ -19,7 +19,7 @@
  * alterations of existing, and deletion of records no longer required.
  *
  * @note The program can e compiled with CMake or directly with
- * @code gcc -Wall -std=gnu11 -m64 -g -o amt amt-db-funcs.c main.c sqlite3.c lpthread -ldl -lreadline
+ * @code cc -Wall -std=gnu11 -g -o amt ./src/amt-db-funcs.c ./src/main.c ./src/sqlite3.c ./src/linenoise.c -lpthread
  *
  */
 
@@ -30,7 +30,7 @@
 #include "types.h"        /* Structure to manage SQLite database information */
 #include "sqlite3.h"      /* SQLite header */
 
-const char amtVersion[] = "0.8.5";  /** @note set the version of the app here */
+const char amtVersion[] = "0.9.0";  /** @note set the version of the app here */
 amtdb_struct amtdb;                 /** @note Declared globally for 'atexit()'. See 'types.h' */
 
 void exit_cleanup(void);            /** @note Run by 'atexit()' on normal program exit */

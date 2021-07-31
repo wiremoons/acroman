@@ -20,15 +20,13 @@
 #include <libgen.h>            /* basename and dirname */
 #include <locale.h>            /* number output formatting with commas */
 #include <stdio.h>             /* printf and asprintf */
-#include <readline/readline.h> /* readline support for text entry */
-#include <readline/history.h>  /* readline history support */
 #include <stdlib.h>            /* getenv */
 #include <string.h>            /* strlen strdup */
 #include <sys/stat.h>          /* stat */
 #include <sys/types.h>         /* stat */
 #include <time.h>              /* stat file modification time */
 #include <unistd.h>            /* strdup access stat and FILE */
-
+#include "linenoise.h"  /** @note Linenoise library: readline replacement */
 
 /**
  * @brief Get the total records held in the database; store any prior total; write both to 'amtdb' struct.
@@ -372,6 +370,11 @@ bool new_acronym(amtdb_struct *amtdb)
 {
     sqlite3_stmt *stmt = NULL;
     set_record_count(amtdb);
+    linenoiseSetMultiLine(1);
+    /** @note max size estimated to hold acronyms 'Description' text: 20,000 characters
+     * must be greater than '0' to enable in linenoise library.
+     */
+    linenoiseHistorySetMaxLen(20000);
 
     printf("\nAdding a new record...\n");
     printf("\nNote: To abort the input of a new record - press 'Ctrl + c'\n\n");
@@ -383,28 +386,28 @@ bool new_acronym(amtdb_struct *amtdb)
     char *nAcroSrc = NULL;
 
     while (1) {
-        nAcro = readline("Enter the acronym: ");
-        add_history(nAcro);
-        nAcroExpd = readline("Enter the expanded acronym: ");
-        add_history(nAcroExpd);
-        nAcroDesc = readline("Enter the acronym description: \n\n");
-        add_history(nAcroDesc);
+        nAcro = linenoise("Enter the acronym: ");
+        linenoiseHistoryAdd(nAcro);
+        nAcroExpd = linenoise("Enter the expanded acronym: ");
+        linenoiseHistoryAdd(nAcroExpd);
+        nAcroDesc = linenoise("Enter the acronym description: \n\n");
+        linenoiseHistoryAdd(nAcroDesc);
 
         get_acronym_src_list(amtdb);
-        nAcroSrc = readline("\nEnter the acronym source: ");
-        add_history(nAcroSrc);
+        nAcroSrc = linenoise("\nEnter the acronym source: ");
+        linenoiseHistoryAdd(nAcroSrc);
 
         printf("\nConfirm entry for:\n\n");
         printf("ACRONYM:     '%s' is: %s.\n", nAcro, nAcroExpd);
         printf("DESCRIPTION: %s\n", nAcroDesc);
         printf("SOURCE:      %s\n\n", nAcroSrc);
 
-        complete = readline("Enter record? [ y/n or q ] : ");
+        complete = linenoise("Enter record? [ y/n or q ] : ");
         if (strcasecmp((const char *)complete, "y") == 0) {
             break;
         }
         if (strcasecmp((const char *)complete, "q") == 0) {
-            /* Clean up readline allocated memory */
+            /* Clean up linenoise allocated memory */
             if (complete != NULL) {
                 free(complete);
             }
@@ -420,7 +423,8 @@ bool new_acronym(amtdb_struct *amtdb)
             if (nAcroSrc != NULL) {
                 free(nAcroSrc);
             }
-            clear_history();
+            // TODO: linenoise for below ??
+            // clear_history();
             return false;
         }
     }
@@ -434,7 +438,7 @@ bool new_acronym(amtdb_struct *amtdb)
     int rc = sqlite3_prepare_v2(amtdb->db, sqlInsNew, -1, &stmt, NULL);
     if (rc != SQLITE_OK) {
         fprintf(stderr, "SQL prepare error: %s\n", sqlite3_errmsg(amtdb->db));
-        /* Clean up readline allocated memory */
+        /* Clean up linenoiseallocated memory */
         if (complete != NULL) {
             free(complete);
         }
@@ -450,14 +454,15 @@ bool new_acronym(amtdb_struct *amtdb)
         if (nAcroSrc != NULL) {
             free(nAcroSrc);
         }
-        clear_history();
+        // TODO: linenoise for below ??
+        // clear_history();
         return false;
     }
 
     rc = sqlite3_exec(amtdb->db, sqlInsNew, NULL, NULL, NULL);
     if (rc != SQLITE_OK) {
         fprintf(stderr, "SQL exec error: %s\n", sqlite3_errmsg(amtdb->db));
-        /* Clean up readline allocated memory */
+        /* Clean up linenoiseallocated memory */
         if (complete != NULL) {
             free(complete);
         }
@@ -473,7 +478,8 @@ bool new_acronym(amtdb_struct *amtdb)
         if (nAcroSrc != NULL) {
             free(nAcroSrc);
         }
-        clear_history();
+        // TODO: linenoise for below ??
+        // clear_history();
         return false;
     }
 
@@ -484,7 +490,7 @@ bool new_acronym(amtdb_struct *amtdb)
         sqlite3_free(sqlInsNew);
     }
 
-    /* Clean up readline allocated memory */
+    /* Clean up linenoiseallocated memory */
     if (complete != NULL) {
         free(complete);
     }
@@ -500,7 +506,8 @@ bool new_acronym(amtdb_struct *amtdb)
     if (nAcroSrc != NULL) {
         free(nAcroSrc);
     }
-    clear_history();
+    // TODO: linenoise for below ??
+    // clear_history();
 
     set_record_count(amtdb);
     printf("Inserted '%d' new record. Total database record count "
@@ -523,6 +530,7 @@ bool new_acronym(amtdb_struct *amtdb)
 bool delete_acronym_record(int delRecId, amtdb_struct *amtdb)
 {
     sqlite3_stmt *stmt = NULL;
+    linenoiseSetMultiLine(1);
     set_record_count(amtdb);
 
     printf("\nDeleting an acronym record...\n");
@@ -562,10 +570,10 @@ bool delete_acronym_record(int delRecId, amtdb_struct *amtdb)
 
     if (deleteRecCount == 1) {
         char *continueDelete = NULL;
-        continueDelete = readline("\nDelete above record? [ y/n ] : ");
+        continueDelete = linenoise("\nDelete above record? [ y/n ] : ");
         if (strcasecmp((const char *)continueDelete, "y") == 0) {
 
-            /* free 'readline' memory as no longer used */
+            /* free 'linenoise memory as no longer used */
             if (continueDelete != NULL) {
                 free(continueDelete);
             }
@@ -593,7 +601,7 @@ bool delete_acronym_record(int delRecId, amtdb_struct *amtdb)
 
            sqlite3_finalize(stmt);
         } else {
-            /* free 'readline' memory as no longer used */
+            /* free 'linenoise memory as no longer used */
             if (continueDelete != NULL) {
                 free(continueDelete);
             }
@@ -621,7 +629,7 @@ bool delete_acronym_record(int delRecId, amtdb_struct *amtdb)
 
 
 /**
- * @brief Gets a list of all the 'source' entries from the SQLite database, and adds them to the readline history.
+ * @brief Gets a list of all the 'source' entries from the SQLite database, and adds them to the linenoisehistory.
  * @param amtdb_struct *amtdb : Pointer to the structure to manage the apps SQLite database information.
  * @note Uses the following SQL to delete the record:
  * @code select distinct(source) from acronyms;
@@ -645,7 +653,7 @@ void get_acronym_src_list(amtdb_struct *amtdb)
     while (sqlite3_step(stmt) == SQLITE_ROW) {
         acroSrcName = strdup((const char *)sqlite3_column_text(stmt, 0));
         printf("[ %s ] ", acroSrcName);
-        add_history(acroSrcName);
+        linenoiseHistoryAdd(acroSrcName);
 
         /* free per loop to stop memory leaks - strdup malloc
          * above */
@@ -671,6 +679,7 @@ void get_acronym_src_list(amtdb_struct *amtdb)
 bool update_acronym_record(int updateRecId, amtdb_struct *amtdb)
 {
     sqlite3_stmt *stmt = NULL;
+    linenoiseSetMultiLine(1);
     set_record_count(amtdb);
 
     printf("\nUpdating an acronym record...\n");
@@ -679,8 +688,7 @@ bool update_acronym_record(int updateRecId, amtdb_struct *amtdb)
     printf("\nSearching for record ID: '%d' in database...\n\n", updateRecId);
 
     /* ifnull() is used to replace any database NULL fields with
-       an empty string as NULL was causing issues with readline
-       when saving a NULL value to add_history() */
+       an empty string as NULL was causing issues with linenoise       when saving a NULL value to linenoiseHistoryAdd() */
     int rc = sqlite3_prepare_v2(amtdb->db,
                            "select rowid, ifnull(Acronym,''),"
                            " ifnull(Definition,''), ifnull(Description,''),"
@@ -709,10 +717,10 @@ bool update_acronym_record(int updateRecId, amtdb_struct *amtdb)
         printf("SOURCE: %s\n", (const char *)sqlite3_column_text(stmt, 4));
         /* grab a copy of the returned record id fields into Readline
          * history - for user recall later to save re-typing entries */
-        add_history((const char *)sqlite3_column_text(stmt, 1));
-        add_history((const char *)sqlite3_column_text(stmt, 2));
-        add_history((const char *)sqlite3_column_text(stmt, 3));
-        add_history((const char *)sqlite3_column_text(stmt, 4));
+        linenoiseHistoryAdd((const char *)sqlite3_column_text(stmt, 1));
+        linenoiseHistoryAdd((const char *)sqlite3_column_text(stmt, 2));
+        linenoiseHistoryAdd((const char *)sqlite3_column_text(stmt, 3));
+        linenoiseHistoryAdd((const char *)sqlite3_column_text(stmt, 4));
         updateRecCount++;
     }
 
@@ -721,10 +729,10 @@ bool update_acronym_record(int updateRecId, amtdb_struct *amtdb)
     /* if we found a record to update */
     if (updateRecCount == 1) {
         char *continueDelete = NULL;
-        continueDelete = readline("\nUpdate above record? [ y/n ] : ");
+        continueDelete = linenoise("\nUpdate above record? [ y/n ] : ");
         if (strcasecmp((const char *)continueDelete, "y") == 0) {
 
-            /* free 'readline' memory as no longer used */
+            /* free 'linenoise memory as no longer used */
             if (continueDelete != NULL) {
                 free(continueDelete);
             }
@@ -739,31 +747,31 @@ bool update_acronym_record(int updateRecId, amtdb_struct *amtdb)
                    "for re-editing or just type in new:\n\n");
 
             while (1) {
-                uAcro = readline("Enter the acronym: ");
-                add_history(uAcro);
-                uAcroExpd = readline("Enter the expanded acronym: ");
-                add_history(uAcroExpd);
-                uAcroDesc = readline("Enter the acronym description: \n\n");
-                add_history(uAcroDesc);
+                uAcro = linenoise("Enter the acronym: ");
+                linenoiseHistoryAdd(uAcro);
+                uAcroExpd = linenoise("Enter the expanded acronym: ");
+                linenoiseHistoryAdd(uAcroExpd);
+                uAcroDesc = linenoise("Enter the acronym description: \n\n");
+                linenoiseHistoryAdd(uAcroDesc);
                 get_acronym_src_list(amtdb);
-                uAcroSrc = readline("\nEnter the acronym source: ");
-                add_history(uAcroSrc);
+                uAcroSrc = linenoise("\nEnter the acronym source: ");
+                linenoiseHistoryAdd(uAcroSrc);
 
                 printf("\nConfirm entry for:\n\n");
                 printf("ACRONYM:     '%s' is: %s.\n", uAcro, uAcroExpd);
                 printf("DESCRIPTION: %s\n", uAcroDesc);
                 printf("SOURCE:      %s\n\n", uAcroSrc);
 
-                complete = readline("Enter record? [ y/n or q ] : ");
+                complete = linenoise("Enter record? [ y/n or q ] : ");
                 if (strcasecmp((const char *)complete, "y") == 0) {
-                    /* Clean up readline allocated memory */
+                    /* Clean up linenoiseallocated memory */
                     if (complete != NULL) {
                         free(complete);
                     }
                     break;
                 }
                 if (strcasecmp((const char *)complete, "q") == 0) {
-                    /* Clean up readline allocated memory */
+                    /* Clean up linenoiseallocated memory */
                     if (complete != NULL) {
                         free(complete);
                     }
@@ -779,7 +787,8 @@ bool update_acronym_record(int updateRecId, amtdb_struct *amtdb)
                     if (uAcroSrc != NULL) {
                         free(uAcroSrc);
                     }
-                    clear_history();
+                    // TODO: linenoise for below ??
+                    // clear_history();
                     return false;
                 }
             }
@@ -808,7 +817,8 @@ bool update_acronym_record(int updateRecId, amtdb_struct *amtdb)
                 if (uAcroSrc != NULL) {
                     free(uAcroSrc);
                 }
-                clear_history();
+                // TODO: linenoise for below ??
+                // clear_history();
                 return false;
             }
 
@@ -828,7 +838,8 @@ bool update_acronym_record(int updateRecId, amtdb_struct *amtdb)
                 if (uAcroSrc != NULL) {
                     free(uAcroSrc);
                 }
-                clear_history();
+                // TODO: linenoise for below ??
+                // clear_history();
                 return false;
             }
 
@@ -846,7 +857,7 @@ bool update_acronym_record(int updateRecId, amtdb_struct *amtdb)
 
             if (rc != SQLITE_DONE) {
                 fprintf(stderr, "SQL exec error: %s\n", sqlite3_errmsg(amtdb->db));
-                /* Clean up readline allocated memory */
+                /* Clean up linenoiseallocated memory */
                 if (uAcro != NULL) {
                     free(uAcro);
                 }
@@ -859,7 +870,8 @@ bool update_acronym_record(int updateRecId, amtdb_struct *amtdb)
                 if (uAcroSrc != NULL) {
                     free(uAcroSrc);
                 }
-                clear_history();
+                // TODO: linenoise for below ??
+                // clear_history();
                 return false;
             }
 
@@ -901,7 +913,8 @@ bool update_acronym_record(int updateRecId, amtdb_struct *amtdb)
             if (uAcroSrc != NULL) {
                 free(uAcroSrc);
             }
-            clear_history();
+            // TODO: linenoise for below ??
+            // clear_history();
 
             set_record_count(amtdb);
             printf("Updated '%d' record. Total database record count "
@@ -910,7 +923,7 @@ bool update_acronym_record(int updateRecId, amtdb_struct *amtdb)
                    amtdb->totalrec, amtdb->totalrec, amtdb->prevtotalrec);
         } else {
 
-            /* free 'readline' memory as no longer used */
+            /* free 'linenoise' memory as no longer used */
             if (continueDelete != NULL) {
                 free(continueDelete);
             }

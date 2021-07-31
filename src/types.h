@@ -6,6 +6,7 @@
 #ifndef AMT_TYPES_H
 #define AMT_TYPES_H
 
+#include "sqlite3.h"
 #include <stdbool.h>
 
 typedef struct AmtDB_Struct {
