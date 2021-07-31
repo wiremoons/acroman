@@ -1,8 +1,16 @@
-/* Acronym Management Tool (amt): main.c */
+/**
+ * @file main.c
+ * @brief Acronym Management Tool (amt). A program to managed SQLite database containing acronyms.
+ * @details Program to managed SQLite database containing acronyms. This source code manages the programs execution.
+ * @See https://github.com/wiremoons/acroman
+ *
+ * @license MIT License
+ *
+ */
 
 #include "main.h"
 
-/* added to enable compile on MacOSX */
+/* added to enable compile on macOS */
 #ifndef __clang__
 # include <malloc.h>    /* free for use with strdup */
 #endif
@@ -12,6 +20,15 @@
 #include <stdlib.h>     /* getenv */
 #include <string.h>     /* strlen strndup */
 
+/*-------------------------------*/
+/* MAIN - Program starts here    */
+/*-------------------------------*/
+/**
+ * @brief Main program start point for `amt`.
+ * @param argc : number of arguments included when the program was executed.
+ * @param argv : array of user provided command line arguments.
+ * @return int : indicating success or failure for programs execution.
+ */
 int main(int argc, char **argv) {
 
     atexit(exit_cleanup);
@@ -19,7 +36,7 @@ int main(int argc, char **argv) {
     /* Set the default locale values according to environment variables. */
     // setlocale (LC_ALL, "");
 
-    /* ensure known state */
+    /** @note ensure known state for `amtdb.db_OK` before execution */
     amtdb.db_OK = false;
 
     #if DEBUG
@@ -38,13 +55,13 @@ int main(int argc, char **argv) {
     fprintf(stderr, "DEBUG: command lines args > 1\n");
     #endif
 
-        /* @note HELP : print out help and exit */
+        /** @note HELP : print out help and exit */
         if (strcmp(argv[1], "-h") == 0 || strcmp(argv[1], "--help") == 0) {
             show_help();
             return (EXIT_SUCCESS);
         }
 
-        /* @note SEARCH : search for provided acronym */
+        /** @note SEARCH : search for provided acronym */
         if (strcmp(argv[1], "-s") == 0 || strcmp(argv[1], "--search") == 0) {
             if (argc > 2 && strlen(argv[2]) > 0) {
                 if (!bootstrap_db()) { return (EXIT_FAILURE); }
@@ -59,7 +76,7 @@ int main(int argc, char **argv) {
             }
         }
 
-        /* @note NEW : add a new acronym via user prompts */
+        /** @note NEW : add a new acronym via user prompts */
         if (strcmp(argv[1], "-n") == 0 || strcmp(argv[1], "--new") == 0) {
              if (!bootstrap_db()) { return (EXIT_FAILURE); }
              if (new_acronym(&amtdb)) {
@@ -71,7 +88,7 @@ int main(int argc, char **argv) {
             }
         }
 
-        /* @note DELETE : delete an acronym record */
+        /** @note DELETE : delete an acronym record */
         if (strcmp(argv[1], "-d") == 0 || strcmp(argv[1], "--delete") == 0) {
             if ( argc > 2 ) {
                 if (!bootstrap_db()) { return (EXIT_FAILURE); }
@@ -80,7 +97,7 @@ int main(int argc, char **argv) {
                 fprintf(stderr, "DEBUG: parsed Record ID is: '%ld'\n",record_ID);
                 #endif
                 if ( record_ID > 0 && record_ID <= amtdb.maxrecid) {
-                    if (del_acro_rec((int)record_ID, &amtdb)) {
+                    if (delete_acronym_record((int) record_ID, &amtdb)) {
                         printf("\nDELETE DONE\n");
                         return (EXIT_SUCCESS);
                     } else {
@@ -104,7 +121,7 @@ int main(int argc, char **argv) {
             }
         }
 
-        /* @note UPDATE : update an acronym record */
+        /** @note UPDATE : update an acronym record */
         if (strcmp(argv[1], "-u") == 0 || strcmp(argv[1], "--update") == 0) {
             if ( argc > 2 ) {
                 if (!bootstrap_db()) { return (EXIT_FAILURE); }
@@ -113,7 +130,7 @@ int main(int argc, char **argv) {
                 fprintf(stderr, "DEBUG: parsed Record ID is: '%ld'\n",record_ID);
                 #endif
                 if (record_ID > 0 && record_ID <= amtdb.maxrecid) {
-                    if (update_acro_rec((int)record_ID, &amtdb)) {
+                    if (update_acronym_record((int) record_ID, &amtdb)) {
                         printf("\nUPDATE DONE\n");
                         return (EXIT_SUCCESS);
                     } else {
@@ -137,13 +154,13 @@ int main(int argc, char **argv) {
             }
         }
 
-        /* @note VERSION : update an acronym record */
+        /** @note VERSION : update an acronym record */
         if (strcmp(argv[1], "-v") == 0 || strcmp(argv[1], "--version") == 0) {
             display_version();
             return (EXIT_SUCCESS);
         }
 
-        /* no matching command lines options - default action to search */
+        /** no matching command lines options - default action to search */
         if (strlen(argv[1]) > 0)  {
             if (!bootstrap_db()) { return (EXIT_FAILURE); }
             const int rec_match = do_acronym_search(argv[1],&amtdb);
@@ -155,7 +172,7 @@ int main(int argc, char **argv) {
             exit(EXIT_FAILURE);
         }
 
-    } else {  /* NO COMMAND LINE ARGS PROVIDED */
+    } else {  /** @note NO COMMAND LINE ARGS PROVIDED */
             fprintf(stderr,"\nERROR: no command lines argument provided.\n");
             display_version();
             if (bootstrap_db()) { output_db_stats(&amtdb); }
@@ -165,38 +182,48 @@ int main(int argc, char **argv) {
     //exit main()
 }
 
-
+/**
+ * @brief Start the programs SQLite database file validation and connections.
+ * @param none
+ * @note accesses the global variable `amtdb_struct *amtdb` structure.
+ * @return none.
+ */
 bool bootstrap_db(void) {
 
-    /* check for a valid database file */
-    if (!check4DBFile(&amtdb)) {
+    /** @note check for a valid database file */
+    if (!check_4_db_file(&amtdb)) {
         fprintf(stderr,"\nERROR: No suitable database file can be located. Program will exit.\n");
         return false;
     }
 
-    /* connect and obtain initial database information */
+    /** @note connect and obtain initial database information */
     if (!initialise_database(&amtdb)) {
         fprintf(stderr,"\n\tERROR: database initialisation failed. Program will exit\n");
         return false;
     }
 
-    /* set flag to show DB connection is good now */
+    /** @note set flag to show DB connection is good now */
     amtdb.db_OK = true;
     return true;
 
 }
 
-
+/**
+ * @brief Output the applications version information.
+ * @param none
+ * @note accesses the global variable `amtdb_struct *amtdb` structure.
+ * @return none.
+ */
 void display_version(void) {
 
-    /* Check build flag used when program was compiled */
+    /** @note Check build flag used when program was compiled */
     #if DEBUG
         char Build_Type[] = "Debug";
     #else
         char Build_Type[] = "Release";
     #endif
 
-    printf("\n'%s' version is: '%s'.\n", amtdb.prog_name, amt_version);
+    printf("\n'%s' version is: '%s'.\n", amtdb.prog_name, amtVersion);
     printf("Compiled on: '%s @ %s' with C source built as '%s'.\n",__DATE__,__TIME__,Build_Type);
     printf("Complied with SQLite version: %s\n", SQLITE_VERSION);
     puts("Copyright (c) 2021 Simon Rowe.\n");
@@ -210,18 +237,37 @@ void display_version(void) {
 
 }
 
+/**
+ * @brief Output the applications help information.
+ * @param none
+ * @note accesses the global variable `amtdb_struct *amtdb` structure.
+ * @return none.
+ */
 void show_help(void) {
     printf("\n"
-           "Help Summary:\n"
-           "The following command line switches can be used:\n"
-           "\n"
-           "  -d ?  Delete : remove an acronym where ? == ID of record to delete\n"
-           "  -h    Help   : show this help information\n"
-           "  -n    New    : add a new acronym record to the database\n"
-           "  -s ?  Search : find an acronym where ? == acronym to locate\n"
-           "  -u ?  Update : update an acronym where ? == ID of record to update\n\n");
+        "\nApplication to manage acronyms stored in a SQLite database.\n"
+        "Usage: %s [switches] [arguments]\n"
+        "\n"
+        "[Switches]        [Arguments]      [Description]\n"
+        "-d, --delete       <rec_id>        delete an acronym record. Argument is mandatory.\n"
+        "-h, --help                         display help information.\n"
+        "-n, --new                          add a new record.\n"
+        "-s, --search       <acronym>       find a acronym record. Argument is mandatory.\n"
+        "-u, --update       <rec_id>        update an existing record. Argument is mandatory.\n"
+        "-v, --version                      display program version information.\n"
+        "\n"
+        "Arguments\n"
+        " <acronym> : a string representing an acronym to be found. Use quotes if contains spaces.\n"
+        " <rec_id>  : unique number assigned to each acronym. Can be found with a '-s, --search'.\n"
+        "Use '%%' for wildcard searches.\n\n",amtdb.prog_name);
 }
 
+/**
+ * @brief Used by applications 'atexit()' call on successful program exit.
+ * @param none
+ * @note accesses the global variable `amtdb_struct *amtdb` structure.
+ * @return none.
+ */
 void exit_cleanup(void) {
     if (amtdb.db == NULL) {
         exit(EXIT_SUCCESS);

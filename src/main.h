@@ -1,43 +1,41 @@
-/*
- * Acronym Management Tool (amt): main.h
+/**
+ * @file main.h
+ * @brief Acronym Management Tool (amt). A program to managed SQLite database containing acronyms.
  *
- * amt is program to manage acronyms held in an SQLite database
+ * @author     simon rowe <simon@wiremoons.com>
+ * @license    open-source released under "MIT License"
+ * @source     https://github.com/wiremoons/acroman
  *
- * author:     simon rowe <simon@wiremoons.com>
- * license:    open-source released under "MIT License"
- * source:     https://github.com/wiremoons/amt
+ * @date originally created: 05 Jan 2016
+ * @date updated significantly: 01 May 2021
  *
- * Program to access a SQLite database and look up a requested acronym that
- * maybe held in a table called 'ACRONYMS'.
+ * The program is licensed under the "*MIT License*" see
+ * http://opensource.org/licenses/MIT for more details.
  *
- * Also supports the creation of new acronym records, alterations of existing,
- * and deletion of records no longer required.
+ * @details The program is used to managed SQLite database containing acronyms. This source code manages the programs
+ * execution. The application uses the SQLite amalgamation source code files. Ensure the latest version is included
+ * in the same directory as this programs source code. The program can access the SQLite database and look up a
+ * requested acronym that maybe held in a table called 'ACRONYMS'. Also supports the creation of new acronym records,
+ * alterations of existing, and deletion of records no longer required.
  *
- * created: 20 Jan 2016 - initial outline code written
- * major update : July 2021 - refactored and improved source code and outputs
- *
- * The application uses the SQLite amalgamation source code files, so ensure
- * they are included in the same directory as this programs source code.
- * To build the program, use the provided Makefile or compile with:
- *
- * gcc -Wall -std=gnu11 -m64 -g -o amt amt-db-funcs.c main.c
- * sqlite3.c lpthread -ldl -lreadline
+ * @note The program can e compiled with CMake or directly with
+ * @code gcc -Wall -std=gnu11 -m64 -g -o amt amt-db-funcs.c main.c sqlite3.c lpthread -ldl -lreadline
  *
  */
 
-#ifndef MAIN_H_ /* Include guard */
-#define MAIN_H_
+#ifndef AMT_MAIN_H /* Include guard */
+#define AMT_MAIN_H
 
 #include "amt-db-funcs.h" /* manages the database access for the application */
 #include "types.h"        /* Structure to manage SQLite database information */
 #include "sqlite3.h"      /* SQLite header */
 
-const char amt_version[] = "0.8.2";    /* set the version of the app here */
-amtdb_struct amtdb;                    /* Declared globally for 'atexit()'. See 'types.h' */
+const char amtVersion[] = "0.8.3";  /** @note set the version of the app here */
+amtdb_struct amtdb;                 /** @note Declared globally for 'atexit()'. See 'types.h' */
 
-void exit_cleanup(void);                       /* Run by 'atexit()' on normal program exit */
-void show_help(void);                          /* display help and usage information to screen */
-void display_version(void);   /* display program version details */
-bool bootstrap_db(void);      /* ensure database is available and accessible */
+void exit_cleanup(void);            /** @note Run by 'atexit()' on normal program exit */
+void show_help(void);               /** @note display help and usage information to screen */
+void display_version(void);         /** @note display program version details */
+bool bootstrap_db(void);            /** @note ensure database is available and accessible */
 
-#endif // MAIN_H_
+#endif // AMT_MAIN_H
