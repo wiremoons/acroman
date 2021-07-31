@@ -7,14 +7,14 @@ A small command line application called '`amt`' (which is an acronym for
 delete acronyms that are kept in a SQLite database.
 
 The program is small, fast, and is free software. It is used on a daily basis by
-the author, running it on both Linux and Windows operating systems. It should
-also compile and run on BSD Unix too, and Mac OS X as well, although this has
+the author, running it on both Linux, macSOS, and Windows operating systems. 
+It should also compile and run on the various BSD Unix too, although this has
 not been tested.
 
 
 ## Status
 
-From version 0.5.0 of '`amt`' is functionally feature complete, based on its
+From version 0.5.0 of '`amt`' it is functionally feature complete, based on its
 ability to provide **CRUD**. This is a set of basic features which includes:
 
  - *CREATE* : new records can be added (ie created) in the database;
@@ -23,60 +23,62 @@ ability to provide **CRUD**. This is a set of basic features which includes:
  - *DELETE*: existing records held in the database can be removed (ie deleted).
 
 This does not mean the program is fully completed (or bug free) - but that it
-provides a basic set of functionality. The program is used on a daily basis by
-the author, and will continue to be improved as is felt to be necessary.
+provides a solid basic set of functionality. The program is used on a daily basis 
+so it will continue to be improved as is felt necessary.
 
 
 ## Usage Examples
 
-Running `amt` without any parameters, but with a database available will
-output the following information:
+Running `amt` without any parameters, but with a database already available, it 
+will output the following information:
 
 ```
-                Acronym Management Tool
-                ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-Summary:
- - 'amt' version is: 0.5.0 complied with SQLite version: 3.18.0
- - Database location: /home/simon/Sybil/db-repo/acronyms.db
- - Database size: 1,929,216 bytes
- - Database last modified: Sun Apr 23 08:47:43 2017
+ERROR: no command lines argument provided.
 
- - Current record count is: 17,314
- - Newest acronym is: BPS
+'./bin/amt' version is: '0.9.0'.
+Compiled on: 'Jul 31 2021 @ 11:04:15' with C source built as 'Debug'.
+Complied with SQLite version: 3.36.0
+Copyright (c) 2021 Simon Rowe.
 
-Completed SQLite database shutdown
+For licenses and further information visit:
+- Application      : https://github.com/wiremoons/acroman/
+- Linenoise        : https://github.com/antirez/linenoise
+- SQLite database  : https://www.sqlite.org/
 
-All is well
+Database Summary:
+ - Database location: /Users/simon/amt-db/acronyms.db
+ - Database size: 2,084,864 bytes
+ - Database last modified: Sat Jul 31 08:46:07 2021
+ - Database total record count: 17846
+ - Newest acronym is: EIT
+
+
+Application to manage acronyms stored in a SQLite database.
+Usage: ./bin/amt [switches] [arguments]
+
+[Switches]        [Arguments]      [Description]
+-d, --delete       <rec_id>        delete an acronym record. Argument is mandatory.
+-h, --help                         display help information.
+-n, --new                          add a new record.
+-s, --search       <acronym>       find a acronym record. Argument is mandatory.
+-u, --update       <rec_id>        update an existing record. Argument is mandatory.
+-v, --version                      display program version information.
+
+Arguments
+ <acronym> : a string representing an acronym to be found. Use quotes if contains spaces.
+ <rec_id>  : unique number assigned to each acronym. Can be found with a '-s, --search'.
+Use '%' for wildcard searches.
 ```
 
-Running `amt -h` displays the help screen which will output the following
-information:
+Running `amt -h` or `amt -v` displays a cut down version of the above output, just showing 
+those specific elements respectively. 
 
-```
-                Acronym Management Tool
-                ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-Summary:
- - 'amt' version is: 0.5.0 complied with SQLite version: 3.18.0
-
-Help Summary:
-The following command line switches can be used:
-
-  -d ?  Delete : remove an acronym where ? == ID of record to delete
-  -h    Help   : show this help information
-  -n    New    : add a new acronym record to the database
-  -s ?  Search : find an acronym where ? == acronym to locate
-  -u ?  Update : update an acronym where ? == ID of record to update
-
-No SQLite database shutdown required
-
-All is well
-```
 
 ## Building the Application
 
 A C language compiler will be needed to build the application. There are also a
-few dependencies that will need to be met for a successful build of `amt`.
-These steps are explained below.
+few dependencies that are required — many of which are included where possible.
+For a successful build of `amt` follow the more detailed steps below.
 
 ### Dependencies
 
@@ -86,37 +88,39 @@ reference.
 
 #### SQLite
 
-The application uses SQLite, however it **includes copies** of the `sqlite3.c` and
-`sqlite3.h` source code files within this applications own code distribution.
-These are are compiled directly into the application when it is built. The two
-includes files are obtained from [http://www.sqlite.org/amalgamation.html](The
-SQLite Amalgamation) source download option.
+The application uses SQLite to store the acronyms. The application 
+**includes copies** of the `sqlite3.c` and `sqlite3.h` source code files 
+the code distribution. These are compiled directly into the application when it 
+is built. The two included files are obtained from 
+[http://www.sqlite.org/amalgamation.html](The SQLite Amalgamation) source 
+download option.
 
-More information on SQLite can be found here: http://www.sqlite.org/
+More information on SQLite can be found here: [http://www.sqlite.org/](http://www.sqlite.org/).
 
-#### Readline
+#### Linenoise
 
-The application uses GNU Readline, and requires these development libraries to
-be installed on the system that `amt` is being built on. On most Linux systems
-the Readline library can be installed from the distributions software
-repositories. The libraries will need to be available before `amt` will compile
-successfully. The GNU Readline library is used to provide some of the
-applications functionality during text entry.
+The application uses *linenoise* craeted by Salvatore Sanfilippo to manage the user input and input history when 
+updating or adding new acronym records. The application **includes copies** of the 
+`linenoise.c` and `linenoise.h` source code files within this applications own code 
+distribution. These are compiled directly into the application when it
+is built. The two included files are obtained from
+[https://github.com/antirez/linenoise](https://github.com/antirez/linenoise)
 
-More information on GNU Readline Library can be found here:
-http://cnswww.cns.cwru.edu/php/chet/readline/readline.html
+The `amt` versions prior to '`0.9.0`' used the *GNU Readline* library which has been 
+removed completely in favour of the self-contained and more flexible (for my usage at 
+least)  *linenoise*, as described above.
 
 ### Install a C Compiler and Supporting Libraries
 
 To install the required libraries and compiler tools on various systems, use the
 following commands before attempting to compile `amt`:
 
-- Ubuntu Linux: `sudo apt install build-essential cmake readline-common libreadline-dev`
-- Fedora (Workstation) Linux: `sudo dnf install readline-devel cmake`
+- Ubuntu Linux: `sudo apt install build-essential cmake`
+- Fedora (Workstation) Linux: `sudo dnf install cmake`
 
 On Windows you can use a C compiler such as MinGW (or equivalent) to build the
 application. In order to build the Windows version for testing and personal use,
-this is done on Fedora Workstation as a cross compile.
+this is often done on Fedora Workstation as a cross compile.
 
 ### Building 'amt'
 
@@ -125,11 +129,14 @@ Before trying to build `amt` make sure you have the required dependencies instal
 
 Use the provided `bash` shell script to run the build steps: `./build.sh`
 
-The build binary will be added to a new `./bin` sub directory - the above build script also provided the same informaiton.
+The build binary will be added to a new `./bin` subdirectory - the above build script 
+also provided the same information.
 
-To compile yourself without using `cmake` or the recommended `build.sh` script - the following command can be used to compile `amt` with GCC compiler on a 64bit Linux system is shown below:
+To compile yourself without using `cmake` or the recommended `build.sh` script - the 
+following command can be used to compile `amt` with GCC compiler on a 64bit Linux 
+system is shown below:
 ```shell
-gcc -g -Wall -m64 -std=gnu11 -o amt amt-db-funcs.c main.c sqlite3.c -lpthread -ldl -lreadline
+cc -g -Wall -m64 -std=gnu11 -o amt amt-db-funcs.c main.c sqlite3.c linenoise.c -lpthread -ldl
 ```
 
 ## Database Location
@@ -138,7 +145,7 @@ The SQLite database used to store the acronyms can be located in the same
 directory as the programs executable. The default filename that is looked for
 by the program is: '***acronyms.db***'
 
-However this can be overridden, by giving a preferred location, which can be
+However, this can be overridden, by giving a preferred location, which can be
 specified by an environment variable called ***ACRODB***. You should set this
 to the path and preferred database file name of your SQLite acronyms database.
 Examples of how to set this for different operating systems are shown below.
@@ -208,73 +215,33 @@ particular priority order.
 1. Offer to create a new default database if one is not found on start up
 2. Ability to populate the database from a remote source
 3. Ability to update and/or check for a new version of the program
-4. Output of records in different fomats (json, csv, etc)
+4. Output of records in different formats (json, csv, etc)
 5. Ability to backup database
-6. Ability to backup table within database and keep older versions
+6. Ability to backup the table within database and keep older versions
 7. Tune and add an index to the database
 8. Merge contents of different databases that have been updated on separate computer to keep in sync
 
 
-## Known Issues
-
-Below are issues known with v0.5.0:
-
-**Issue ONE:** On record update the following is printed to the
-screen: **symbol lookup error: amt: undefined symbol: rl_clear_history**
-
-**Cause for ONE:** This is caused by a older GNU Readline library not
-having the newer function call *rl_clear_history()* that is used by
-the application. The `amt` application was probably compiled on a
-system with the newer library, but is now being used an a system that
-has an older version Readline shared library installed. The use of
-this function newer call *rl_clear_history()* replaced the older
-*clear_history()* because it additionally frees private data Readline
-saves in the history list.
-
-**Fix for ONE:** Currently one fix is to upgrade the Readline library
-  on the system that `amt` is being used on. Use GNU Readline version
-  6.3 or newer, as this function call was added in version 6.3. A work
-  around from a development perspective to check for this should be
-  added in the future.
-
-
 ## Licenses
 
-The following licenses apply to the `amt` source code, and resulting built
-application, as described below.
+The following opensource licenses apply to the `amt` source code, and resulting built
+application.
 
 #### License for 'amt'
 
 This program `amt` is licensed under the **MIT License** see
-http://opensource.org/licenses/mit for more details.
+http://opensource.org/licenses/mit. A copy of the applications license is here 
+[amt License](https://github.com/wiremoons/acroman/blob/master/LICENSE.txt).
 
 #### License for 'SQLite'
 
-The SQLite database code used in this application is licensed as **Public
+The *SQLite* database code used in this application is licensed as **Public
 Domain**, see http://www.sqlite.org/copyright.html for more details.
 
-#### License for 'GNU Readline'
+#### License for 'linenoise'
 
-The GNU Readline Library used in this application is licensed under the **GNU
-GPL v3**, see https://www.gnu.org/licenses/ for more details. 
+The *linenoise* code used in this application is licensed under the 
+**BSD-2-Clause License**. See [Linenoise License](https://github.com/antirez/linenoise/blob/master/LICENSE) 
+for more details. The *linenoise* code is copyright (c) of Salvatore Sanfilippo contactable 
+at *antirez at gmail dot com*.
 
-### License Limitations
-
-**PLEASE NOTE**: Any *distributed compiled binary* versions of `amt` will
-include GNU Readline functionality, and these specific binary versions will
-therefore be 'infected' by the GPL license. In these circumstances, if the
-binary is onward distributed (ie shared with another party), it should
-therefore be licensed as 'GNU GPL v3'. For most users of other GPL licensed
-software (such as GNU Linux distributions), this will not be an issue or
-concern.
-
-The `amt` source code remains completely free under a the **MIT License**
-however. The impact of the Readline GNU GPL license creates a *developer
-limitation of freedom*, which can be circumvented by perhaps using an
-alternative to the GNU Readline library, such as:
-
-- [http://thrysoee.dk/editline/](EditLine) 
-- [https://github.com/antirez/linenoise](Linenoise)
-
-These two example alternative libraries are **not** GNU GPL licensed libraries.
-These options provide an alternative *choice*, should you want to invoke it.
