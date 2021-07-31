@@ -11,6 +11,7 @@
 
 #include "amt-db-funcs.h"
 
+
 /* added to enable compile on macOS */
 #ifndef __clang__
 #include <malloc.h> /* free for use with strdup and malloc */
