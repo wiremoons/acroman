@@ -34,6 +34,8 @@
  * @brief Get the total records held in the database; store any prior total; write both to 'amtdb' struct.
  * @param amtdb_struct *amtdb : Pointer to the structure to manage the apps SQLite database information.
  * @return bool : success status for functions execution.
+ * @note Uses the following SQL:
+ * @code select count(*) from ACRONYMS;
  */
 bool set_record_count(amtdb_struct *amtdb)
 {
@@ -66,6 +68,8 @@ bool set_record_count(amtdb_struct *amtdb)
  * @brief Get the maximum record id number in use by the database, and write result to 'amtdb' struct.
  * @param amtdb_struct *amtdb : Pointer to the structure to manage the apps SQLite database information.
  * @return bool : success status for functions execution.
+ * @note Uses the follow SQL:
+ * @code select MAX(rowid) from ACRONYMS;
  */
 bool update_max_recid(amtdb_struct *amtdb)
 {
@@ -307,11 +311,12 @@ char *get_last_acronym(amtdb_struct *amtdb)
 
 /**
  * @brief Search for the provided acronym in the database and return the matching number of records found.
- * @param `char *findme` : Pointer to a string containing the acronym to be searched for.
- * @param `amtdb_struct *amtdb` : Pointer to the structure to manage the apps SQLite database information.
+ * @param char *findme : Pointer to a string containing the acronym to be searched for.
+ * @param amtdb_struct *amtdb : Pointer to the structure to manage the apps SQLite database information.
+ * @return int : the number of matching acronyms found in the database.
+ * @note Uses the following SQL:
  * @code select rowid,ifnull(Acronym,''), ifnull(Definition,''), ifnull(Source,''), ifnull(Description,'')
- * @code from ACRONYMS where Acronym like ? COLLATE NOCASE ORDER BY Source;
- * @return `int` : the number of matching acronyms found in the database.
+ * from ACRONYMS where Acronym like ? COLLATE NOCASE ORDER BY Source;
  */
 int do_acronym_search(char *findme, amtdb_struct *amtdb)
 {
@@ -355,12 +360,14 @@ int do_acronym_search(char *findme, amtdb_struct *amtdb)
     return searchRecCount;
 }
 
-/***************************************************************/
-/* ADDING A NEW RECORD                                         */
-/* ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯                                         */
-/* insert into ACRONYMS(Acronym,Definition,Description,Source) */
-/* values(?,?,?,?);                                            */
-/***************************************************************/
+
+/**
+ * @brief Add a new acronym record using input provided by the user when they are prompted on screen for inputs.
+ * @param amtdb_struct *amtdb : Pointer to the structure to manage the apps SQLite database information.
+ * @return bool : success status for functions execution.
+ * @note Uses the following SQL:
+ * @code insert into ACRONYMS(Acronym,Definition,Description,Source) values(?,?,?,?);
+ */
 bool new_acronym(amtdb_struct *amtdb)
 {
     sqlite3_stmt *stmt = NULL;
@@ -504,15 +511,15 @@ bool new_acronym(amtdb_struct *amtdb)
     return true;
 }
 
-/********************************************************************/
-/* DELETE A RECORD BASE ROWID                                       */
-/* ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯                                       */
-/* select rowid,Acronym,Definition,Description,Source from ACRONYMS */
-/* where rowid                                                      */
-/* = ?;                                                             */
-/*                                                                  */
-/* delete from ACRONYMS where rowid = ?;                            */
-/********************************************************************/
+
+/**
+ * @brief Delete an users provided acronym record from the SQLite database.
+ * @param int delRecId : the record ID provided by the user to be deleted from the database.
+ * @param amtdb_struct *amtdb : Pointer to the structure to manage the apps SQLite database information.
+ * @return bool : success status for functions execution.
+ * @note Uses the following SQL to delete the record:
+ * @code delete from ACRONYMS where rowid = ?;
+ */
 bool delete_acronym_record(int delRecId, amtdb_struct *amtdb)
 {
     sqlite3_stmt *stmt = NULL;
@@ -612,11 +619,13 @@ bool delete_acronym_record(int delRecId, amtdb_struct *amtdb)
     return true;
 }
 
-/******************************************/
-/* GETTING LIST OF ACRONYM SOURCES        */
-/* ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯        */
-/* select distinct(source) from acronyms; */
-/******************************************/
+
+/**
+ * @brief Gets a list of all the 'source' entries from the SQLite database, and adds them to the readline history.
+ * @param amtdb_struct *amtdb : Pointer to the structure to manage the apps SQLite database information.
+ * @note Uses the following SQL to delete the record:
+ * @code select distinct(source) from acronyms;
+ */
 void get_acronym_src_list(amtdb_struct *amtdb)
 {
     sqlite3_stmt *stmt = NULL;
@@ -649,16 +658,16 @@ void get_acronym_src_list(amtdb_struct *amtdb)
     sqlite3_finalize(stmt);
 }
 
-/********************************************************************/
-/* UPDATE A RECORD BASED ON ROWID                                   */
-/* Update an existing record identified by the recordID.            */
-/* Invoked via CLI param: '-u' or '--update'                        */
-/*                                                                  */
-/* select rowid,ifnull(Acronym,''), ifnull(Definition,''),          */
-/*   ifnull(Description,''), ifnull(Source,'') from ACRONYMS        */
-/*   where rowid = ?;                                               */
-/*                                                                  */
-/********************************************************************/
+
+/**
+ * @brief Updates a acronym record stored in the SQLite database based on the user provided record ID .
+ * @param int updateRecId : the record ID provided by the user to be updated in the database.
+ * @param amtdb_struct *amtdb : Pointer to the structure to manage the apps SQLite database information.
+ * @return bool : success status for functions execution.
+ * @note Uses the following SQL to delete the record:
+ * @code select rowid,ifnull(Acronym,''), ifnull(Definition,''), fnull(Description,''), ifnull(Source,'')
+ * from ACRONYMS where rowid = ?;
+ */
 bool update_acronym_record(int updateRecId, amtdb_struct *amtdb)
 {
     sqlite3_stmt *stmt = NULL;
