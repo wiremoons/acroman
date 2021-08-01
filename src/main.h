@@ -19,7 +19,7 @@
  * alterations of existing, and deletion of records no longer required.
  *
  * @note The program can e compiled with CMake or directly with
- * @code cc -Wall -std=gnu11 -g -o amt ./src/amt-db-funcs.c ./src/main.c ./src/sqlite3.c ./src/linenoise.c -lpthread
+ * @code cc -Wall -std=gnu11 -g -o amt ./src/amt-db-funcs.c ./src/main.c ./src/sqlite3.c ./src/linenoise.c -lpthread -ldl
  *
  */
 
