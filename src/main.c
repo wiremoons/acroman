@@ -226,7 +226,7 @@ void display_version(void) {
     #ifdef __clang__
         const char compilerVersion[] = __clang_version__;
     #elif __GNUC__
-        const char compilerVersion[] = __GNUC_VERSION__;
+        const char compilerVersion[] = __VERSION__;
     #elif _MSC_VER
         const char compilerVersion[] = _MSC_FULL_VER;
     #elif __MINGW64__
