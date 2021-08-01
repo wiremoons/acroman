@@ -27,7 +27,7 @@
 #include <sys/types.h>         /* stat */
 #include <time.h>              /* stat file modification time */
 #include <unistd.h>            /* strdup access stat and FILE */
-#include "linenoise.h"  /** @note Linenoise library: readline replacement */
+#include "linenoise.h"         /** @note Linenoise library: readline replacement */
 
 /**
  * @brief Get the total records held in the database; store any prior total; write both to 'amtdb' struct.
@@ -86,7 +86,6 @@ bool update_max_recid(amtdb_struct *amtdb)
     while (sqlite3_step(stmt) == SQLITE_ROW) {
         amtdb->maxrecid = sqlite3_column_int(stmt, 0);
     }
-
     sqlite3_finalize(stmt);
     return true;
 }
@@ -359,6 +358,20 @@ int do_acronym_search(char *findme, amtdb_struct *amtdb)
     return searchRecCount;
 }
 
+/**
+ * @brief Ensure sane base setting for linenoise prior to is usse in the 'delete'; 'update'; and 'new' functions.
+ * @param none
+ * @return none
+ */
+void linenoise_initialise(void) {
+    /** @note enable or disable multiline editing feature */
+    linenoiseSetMultiLine(1);
+    /** @note max size of the number if items to hold in the linenoise history that
+     * must be greater than '0' to enable in linenoise library.
+     */
+    linenoiseHistorySetMaxLen(20);
+}
+
 
 /**
  * @brief Add a new acronym record using input provided by the user when they are prompted on screen for inputs.
@@ -371,11 +384,8 @@ bool new_acronym(amtdb_struct *amtdb)
 {
     sqlite3_stmt *stmt = NULL;
     set_record_count(amtdb);
-    linenoiseSetMultiLine(1);
-    /** @note max size estimated to hold acronyms 'Description' text: 20,000 characters
-     * must be greater than '0' to enable in linenoise library.
-     */
-    linenoiseHistorySetMaxLen(20000);
+
+    linenoise_initialise();
 
     printf("\nAdding a new record...\n");
     printf("\nNote: To abort the input of a new record - press 'Ctrl + c'\n\n");
@@ -391,11 +401,12 @@ bool new_acronym(amtdb_struct *amtdb)
         linenoiseHistoryAdd(nAcro);
         nAcroExpd = linenoise("Enter the expanded acronym: ");
         linenoiseHistoryAdd(nAcroExpd);
-        nAcroDesc = linenoise("Enter the acronym description: \n\n");
+        puts("Enter the acronym description:\n");
+        nAcroDesc = linenoise("");
         linenoiseHistoryAdd(nAcroDesc);
-
+        puts("\n");
         get_acronym_src_list(amtdb);
-        nAcroSrc = linenoise("\nEnter the acronym source: ");
+        nAcroSrc = linenoise("Enter the acronym source: ");
         linenoiseHistoryAdd(nAcroSrc);
 
         printf("\nConfirm entry for:\n\n");
@@ -531,8 +542,9 @@ bool new_acronym(amtdb_struct *amtdb)
 bool delete_acronym_record(int delRecId, amtdb_struct *amtdb)
 {
     sqlite3_stmt *stmt = NULL;
-    linenoiseSetMultiLine(1);
     set_record_count(amtdb);
+
+    linenoise_initialise();
 
     printf("\nDeleting an acronym record...\n");
     printf("\nNote: To abort the delete of a record - press 'Ctrl "
@@ -571,7 +583,8 @@ bool delete_acronym_record(int delRecId, amtdb_struct *amtdb)
 
     if (deleteRecCount == 1) {
         char *continueDelete = NULL;
-        continueDelete = linenoise("\nDelete above record? [ y/n ] : ");
+        puts("");
+        continueDelete = linenoise("Delete above record? [ y/n ] : ");
         if (strcasecmp((const char *)continueDelete, "y") == 0) {
 
             /* free 'linenoise memory as no longer used */
@@ -680,16 +693,15 @@ void get_acronym_src_list(amtdb_struct *amtdb)
 bool update_acronym_record(int updateRecId, amtdb_struct *amtdb)
 {
     sqlite3_stmt *stmt = NULL;
-    linenoiseSetMultiLine(1);
     set_record_count(amtdb);
+
+    linenoise_initialise();
 
     printf("\nUpdating an acronym record...\n");
     printf("\nNote: To abort the update of a record - press 'Ctrl + c'\n\n");
 
     printf("\nSearching for record ID: '%d' in database...\n\n", updateRecId);
 
-    /* ifnull() is used to replace any database NULL fields with
-       an empty string as NULL was causing issues with linenoise       when saving a NULL value to linenoiseHistoryAdd() */
     int rc = sqlite3_prepare_v2(amtdb->db,
                            "select rowid, ifnull(Acronym,''),"
                            " ifnull(Definition,''), ifnull(Description,''),"
@@ -730,7 +742,8 @@ bool update_acronym_record(int updateRecId, amtdb_struct *amtdb)
     /* if we found a record to update */
     if (updateRecCount == 1) {
         char *continueDelete = NULL;
-        continueDelete = linenoise("\nUpdate above record? [ y/n ] : ");
+        puts("");
+        continueDelete = linenoise("Update above record? [ y/n ] : ");
         if (strcasecmp((const char *)continueDelete, "y") == 0) {
 
             /* free 'linenoise memory as no longer used */
@@ -752,10 +765,12 @@ bool update_acronym_record(int updateRecId, amtdb_struct *amtdb)
                 linenoiseHistoryAdd(uAcro);
                 uAcroExpd = linenoise("Enter the expanded acronym: ");
                 linenoiseHistoryAdd(uAcroExpd);
-                uAcroDesc = linenoise("Enter the acronym description: \n\n");
+                puts("Enter the acronym description:\n");
+                uAcroDesc = linenoise("");
                 linenoiseHistoryAdd(uAcroDesc);
                 get_acronym_src_list(amtdb);
-                uAcroSrc = linenoise("\nEnter the acronym source: ");
+                puts("");
+                uAcroSrc = linenoise("Enter the acronym source: ");
                 linenoiseHistoryAdd(uAcroSrc);
 
                 printf("\nConfirm entry for:\n\n");
