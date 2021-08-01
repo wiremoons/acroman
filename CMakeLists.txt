@@ -23,7 +23,13 @@ file(GLOB SOURCES "./src/*.c")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 #
 # add additional flags to standard ${CMAKE_C_FLAGS}
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11 -Wall -Wextra")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra")
+
+if (CMAKE_COMPILER_IS_GNUCC)
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu11")
+else()
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11")
+endif()
 #
 # show build flags being used:
 message("CMake build flags for C: ${CMAKE_C_FLAGS} ${SOURCES} ${CMAKE_DL_LIBS}")
