@@ -172,7 +172,7 @@ bool check_4_db_file(amtdb_struct *amtdb)
 
 
 /**
- * @brief Check the valid SQLite database file. Record database file stats into the 'amtdb' struct.
+ * @brief Check the valid SQLite database file. Record the database file stats into the 'amtdb' struct.
  * @param amtdb_struct *amtdb : Pointer to the structure to manage the apps SQLite database information.
  * @return bool : success status for functions execution.
  */
@@ -202,10 +202,17 @@ bool check_db_access(amtdb_struct *amtdb)
 
     /** @note get the size of the database file */
     amtdb->dbsize = sb.st_size;
-    /* ctime() returns pointer to a 26 character string */
-    amtdb->dblastmod = strndup(ctime(&sb.st_mtime),26);
+
+    /** @note get the database file modification date */
+    char tempDate[100];
+    size_t dateLength = strftime(tempDate, 100, "%a %M %b %Y @ %H:%M:%S", localtime(&sb.st_mtime));
+    if (dateLength < 1 ) {
+        fprintf(stderr,"ERROR: file modification date 'strftime' conversion failure\n");
+        return false;
+    }
+    amtdb->dblastmod = strndup(tempDate, dateLength);
     if (amtdb->dblastmod == NULL) {
-        perror("ERROR: Failed to copy database modification time.\n");
+        perror("ERROR: Failed to copy database modification time into 'amdb->dblastmod' structure field.\n");
         return false;
     }
 
@@ -226,12 +233,12 @@ bool output_db_stats(amtdb_struct *amtdb)
         return false;
     }
 
-    printf("Database Summary:\n");
-    printf(" - Database location: %s\n", amtdb->dbfile);
-    printf(" - Database size: %'lld bytes\n", amtdb->dbsize);
-    printf(" - Database last modified: %s", amtdb->dblastmod);
-    printf(" - Database total record count: %d\n", amtdb->totalrec);
-    printf(" - Newest acronym is: %s\n", get_last_acronym(amtdb));
+    printf("Database full path:   '%s'\n", amtdb->dbfile);
+    printf("Database file size:   '%'lld' bytes\n", amtdb->dbsize);
+    printf("Database modified:    '%s'\n\n", amtdb->dblastmod);
+    printf("SQLite version:       '%s'\n", SQLITE_VERSION);
+    printf("Total acronyms:       '%'d'\n", amtdb->totalrec);
+    printf("Last acronym entered: '%s'\n", get_last_acronym(amtdb));
 
     return true;
 }

@@ -218,25 +218,37 @@ void display_version(void) {
 
     /** @note Check build flag used when program was compiled */
     #if DEBUG
-        char Build_Type[] = "Debug";
+        const char Build_Type[] = "Debug";
     #else
-        char Build_Type[] = "Release";
+        const char Build_Type[] = "Release";
+    #endif
+
+    #ifdef __clang__
+        const char compilerVersion[] = __clang_version__;
+    #elif __GNUC__
+        const char compilerVersion[] = __GNUC_VERSION__;
+    #elif _MSC_VER
+        const char compilerVersion[] = _MSC_FULL_VER;
+    #elif __MINGW64__
+        const char compilerVersion[] = __MINGW64_VERSION_MAJOR
+    #else
+        const char compilerVersion[] = "UNKNOWN";
     #endif
 
     printf("\n'%s' version is: '%s'.\n", amtdb.prog_name, amtVersion);
-    printf("Compiled on: '%s @ %s' with C source built as '%s'.\n",__DATE__,__TIME__,Build_Type);
-    printf("Complied with SQLite version: %s\n", SQLITE_VERSION);
+    printf("Compiled on: '%s @ %s'.\n",__DATE__,__TIME__);
     puts("Copyright (c) 2021 Simon Rowe.\n");
+    printf("C source built as '%s' using compiler '%s'.\n\n",Build_Type,compilerVersion);
     puts("For licenses and further information visit:");
-    puts("- Application      : https://github.com/wiremoons/acroman/");
-    puts("- Linenoise        : https://github.com/antirez/linenoise");
-    puts("- SQLite database  : https://www.sqlite.org/\n");
+    puts("Application:          https://github.com/wiremoons/acroman");
+    puts("Linenoise:            https://github.com/antirez/linenoise");
+    puts("SQLite database:      https://www.sqlite.org/\n");
 
     if ( getenv("NO_COLOR") ) {
         puts("\n'NO_COLOR' environment exist as: https://no-color.org/");
     }
-
 }
+
 
 /**
  * @brief Output the applications help information.
