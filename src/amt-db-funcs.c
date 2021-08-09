@@ -205,7 +205,7 @@ bool check_db_access(amtdb_struct *amtdb)
 
     /** @note get the database file modification date */
     char tempDate[100];
-    size_t dateLength = strftime(tempDate, 100, "%a %M %b %Y @ %H:%M:%S", localtime(&sb.st_mtime));
+    size_t dateLength = strftime(tempDate, 100, "%a %d %b %Y @ %H:%M:%S", localtime(&sb.st_mtime));
     if (dateLength < 1 ) {
         fprintf(stderr,"ERROR: file modification date 'strftime' conversion failure\n");
         return false;
