@@ -66,7 +66,7 @@ int main(int argc, char **argv) {
             if (argc > 2 && strlen(argv[2]) > 0) {
                 if (!bootstrap_db()) { return (EXIT_FAILURE); }
                 const int rec_match = do_acronym_search(argv[2],&amtdb);
-                printf("\nSearch for: '%s' found '%d' records\n\n", argv[2], rec_match);
+                printf("\nSearch of '%'d' records for '%s' found '%d' matches.\n\n", amtdb.totalrec, argv[2], rec_match);
                 return (EXIT_SUCCESS);
 
             } else {
@@ -164,7 +164,7 @@ int main(int argc, char **argv) {
         if (strlen(argv[1]) > 0)  {
             if (!bootstrap_db()) { return (EXIT_FAILURE); }
             const int rec_match = do_acronym_search(argv[1],&amtdb);
-            printf("\nSearch for: '%s' found '%d' records\n\n", argv[1], rec_match);
+            printf("\nSearch of '%'d' records for '%s' found '%d' matches.\n\n", amtdb.totalrec, argv[1], rec_match);
             return (EXIT_SUCCESS);
         } else {
             fprintf(stderr, "\nERROR: for '-s' or '--search' option please provide "
