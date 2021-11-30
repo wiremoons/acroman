@@ -25,3 +25,5 @@ tags
 build/
 # ignore 'bin' directory of compiled binaries
 bin/
+# ignore '.idea/' CLion IDE directory
+.idea/
