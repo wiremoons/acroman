@@ -249,7 +249,7 @@ void display_version(void) {
 
     printf("\n'%s' version is: '%s'.\n", amtdb.prog_name, amtVersion);
     printf("Compiled on: '%s @ %s'.\n",__DATE__,__TIME__);
-    puts("Copyright (c) 2021 Simon Rowe.\n");
+    puts("Copyright (c) 2022 Simon Rowe.\n");
     printf("C source built as '%s' using compiler '%s'.\n\n",Build_Type,compilerVersion);
     puts("For licenses and further information visit:");
     puts("Application:          https://github.com/wiremoons/acroman");

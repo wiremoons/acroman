@@ -37,7 +37,7 @@ ERROR: no command lines argument provided.
 
 '/Users/simon/GenIsys-macOS/assets/amt-arm64' version is: '0.10.2'.
 Compiled on: 'Feb 19 2022 @ 19:20:47'.
-Copyright (c) 2021 Simon Rowe.
+Copyright (c) 2022 Simon Rowe.
 
 C source built as 'Release' using compiler '13.0.0 (clang-1300.0.29.30)'.
 
