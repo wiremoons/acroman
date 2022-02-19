@@ -35,30 +35,33 @@ will output the following information:
 ```
 ERROR: no command lines argument provided.
 
-'./bin/amt' version is: '0.9.0'.
-Compiled on: 'Jul 31 2021 @ 11:04:15' with C source built as 'Debug'.
-Complied with SQLite version: 3.36.0
+'/Users/simon/GenIsys-macOS/assets/amt-arm64' version is: '0.10.2'.
+Compiled on: 'Feb 19 2022 @ 19:20:47'.
 Copyright (c) 2021 Simon Rowe.
 
-For licenses and further information visit:
-- Application      : https://github.com/wiremoons/acroman/
-- Linenoise        : https://github.com/antirez/linenoise
-- SQLite database  : https://www.sqlite.org/
+C source built as 'Release' using compiler '13.0.0 (clang-1300.0.29.30)'.
 
-Database Summary:
- - Database location: /Users/simon/amt-db/acronyms.db
- - Database size: 2,084,864 bytes
- - Database last modified: Sat Jul 31 08:46:07 2021
- - Database total record count: 17846
- - Newest acronym is: EIT
+For licenses and further information visit:
+Application:          https://github.com/wiremoons/acroman
+Linenoise:            https://github.com/antirez/linenoise
+SQLite database:      https://www.sqlite.org/
+
+Database full path:   '/Users/simon/icloud/amt-db/acronyms.db'
+Database file size:   '2,134,016' bytes
+Database modified:    'Fri 18 Feb 2022 @ 21:28:27'
+
+SQLite version:       '3.37.1'
+Total acronyms:       '17,951'
+Last acronym entered: 'STL'
 
 
 Application to manage acronyms stored in a SQLite database.
-Usage: ./bin/amt [switches] [arguments]
+Usage: /Users/simon/GenIsys-macOS/assets/amt-arm64 [switches] [arguments]
 
 [Switches]        [Arguments]      [Description]
 -d, --delete       <rec_id>        delete an acronym record. Argument is mandatory.
 -h, --help                         display help information.
+-l, --latest                       display the five latest records added.
 -n, --new                          add a new record.
 -s, --search       <acronym>       find a acronym record. Argument is mandatory.
 -u, --update       <rec_id>        update an existing record. Argument is mandatory.
