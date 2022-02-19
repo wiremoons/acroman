@@ -342,12 +342,6 @@ bool latest_acronym(amtdb_struct *amtdb)
         exit(EXIT_FAILURE);
     }
 
-    if (rc != SQLITE_OK) {
-        fprintf(stderr, "SQL bind error: %s\n", sqlite3_errmsg(amtdb->db));
-        result = false;
-        exit(EXIT_FAILURE);
-    }
-
     int searchRecCount = 0;
     printf("\nFive newest acronym records added are:\n");
     while (sqlite3_step(stmt) == SQLITE_ROW) {
