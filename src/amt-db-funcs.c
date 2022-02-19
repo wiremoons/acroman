@@ -315,6 +315,59 @@ char *get_last_acronym(amtdb_struct *amtdb)
 
 
 /**
+ * @brief Display the five latest acronym records in the database.
+ * @param amtdb_struct *amtdb : Pointer to the structure to manage the apps SQLite database information.
+ * @return bool : true if records found.
+ * @note Uses the following SQL:
+ * @code select rowid,ifnull(Acronym,''), ifnull(Definition,''), ifnull(Source,''), ifnull(Description,'')
+ * from ACRONYMS Order by rowid DESC LIMIT 5;
+ */
+bool latest_acronym(amtdb_struct *amtdb)
+{
+    sqlite3_stmt *stmt = NULL;   	    /* pre-prepared SQL query statement */
+    bool result = false;
+
+    int rc = sqlite3_prepare_v2(amtdb->db,
+                                "select rowid,ifnull(Acronym,''), "
+                                "ifnull(Definition,''), "
+                                "ifnull(Source,''), "
+                                "ifnull(Description,'') "
+                                "from ACRONYMS "
+                                "Order by rowid DESC LIMIT 5;",
+                                -1, &stmt, NULL);
+
+    if (rc != SQLITE_OK) {
+        fprintf(stderr, "SQL prepare error: %s\n", sqlite3_errmsg(amtdb->db));
+        result = false;
+        exit(EXIT_FAILURE);
+    }
+
+    if (rc != SQLITE_OK) {
+        fprintf(stderr, "SQL bind error: %s\n", sqlite3_errmsg(amtdb->db));
+        result = false;
+        exit(EXIT_FAILURE);
+    }
+
+    int searchRecCount = 0;
+    printf("\nFive newest acronym records added are:\n");
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
+        printf("\nID:          %s\n", (const char *)sqlite3_column_text(stmt, 0));
+        printf("ACRONYM:     '%s' is: '%s'.\n",
+               (const char *)sqlite3_column_text(stmt, 1),
+               (const char *)sqlite3_column_text(stmt, 2));
+        printf("SOURCE:      '%s'\n",
+               (const char *)sqlite3_column_text(stmt, 3));
+        printf("DESCRIPTION: %s\n", (const char *)sqlite3_column_text(stmt, 4));
+        searchRecCount++;
+    }
+
+    sqlite3_finalize(stmt);
+
+    return result = true;
+}
+
+
+/**
  * @brief Search for the provided acronym in the database and return the matching number of records found.
  * @param char *findme : Pointer to a string containing the acronym to be searched for.
  * @param amtdb_struct *amtdb : Pointer to the structure to manage the apps SQLite database information.

@@ -88,6 +88,18 @@ int main(int argc, char **argv) {
             }
         }
 
+        /** @note LATEST : list the 5 newest acronyms */
+        if (strcmp(argv[1], "-l") == 0 || strcmp(argv[1], "--latest") == 0) {
+            if (!bootstrap_db()) { return (EXIT_FAILURE); }
+            if (latest_acronym(&amtdb)) {
+                printf("\nLATEST DONE\n");
+                return (EXIT_SUCCESS);
+            } else {
+                fprintf(stderr, "ERROR: failed to complete listing the new records.\n");
+                exit(EXIT_FAILURE);
+            }
+        }
+
         /** @note DELETE : delete an acronym record */
         if (strcmp(argv[1], "-d") == 0 || strcmp(argv[1], "--delete") == 0) {
             if ( argc > 2 ) {
@@ -264,6 +276,7 @@ void show_help(void) {
         "[Switches]        [Arguments]      [Description]\n"
         "-d, --delete       <rec_id>        delete an acronym record. Argument is mandatory.\n"
         "-h, --help                         display help information.\n"
+        "-l, --latest                       display the five latest records added.\n"
         "-n, --new                          add a new record.\n"
         "-s, --search       <acronym>       find a acronym record. Argument is mandatory.\n"
         "-u, --update       <rec_id>        update an existing record. Argument is mandatory.\n"

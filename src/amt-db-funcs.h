@@ -27,5 +27,6 @@ bool delete_acronym_record(int delRecId, amtdb_struct *amtdb);     /* delete a a
 bool update_acronym_record(int updateRecId, amtdb_struct *amtdb);  /* update a record in the database */
 bool output_db_stats(amtdb_struct *amtdb);                         /* show database file, file size, modified date */
 bool update_max_recid(amtdb_struct *amtdb);                        /* obtain max record ID number in the database */
+bool latest_acronym(amtdb_struct *amtdb);                          /* show five latest records in the database */
 
 #endif // AMT_AMT_DB_FUNCS_H
