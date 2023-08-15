@@ -19,7 +19,8 @@
  * alterations of existing, and deletion of records no longer required.
  *
  * @note The program can e compiled with CMake or directly with
- * @code cc -Wall -std=gnu11 -g -o amt ./src/amt-db-funcs.c ./src/main.c ./src/sqlite3.c ./src/linenoise.c -lpthread -ldl
+ * @code cc -Wall -std=gnu11 -g -o amt ./src/amt-db-funcs.c ./src/main.c ./src/sqlite3.c ./src/linenoise.c -lpthread
+ * -ldl
  *
  */
 
@@ -27,15 +28,15 @@
 #define AMT_MAIN_H
 
 #include "amt-db-funcs.h" /* manages the database access for the application */
-#include "types.h"        /* Structure to manage SQLite database information */
 #include "sqlite3.h"      /* SQLite header */
+#include "types.h"        /* Structure to manage SQLite database information */
 
-const char amtVersion[] = "0.10.3";  /** @note set the version of the app here */
+const char amtVersion[] = "0.11.0"; /** @note set the version of the app here */
 amtdb_struct amtdb;                 /** @note Declared globally for 'atexit()'. See 'types.h' */
 
-void exit_cleanup(void);            /** @note Run by 'atexit()' on normal program exit */
-void show_help(void);               /** @note display help and usage information to screen */
-void display_version(void);         /** @note display program version details */
-bool bootstrap_db(void);            /** @note ensure database is available and accessible */
+void exit_cleanup(void);    /** @note Run by 'atexit()' on normal program exit */
+void show_help(void);       /** @note display help and usage information to screen */
+void display_version(void); /** @note display program version details */
+bool bootstrap_db(void);    /** @note ensure database is available and accessible */
 
 #endif // AMT_MAIN_H

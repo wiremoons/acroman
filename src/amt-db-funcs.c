@@ -331,7 +331,8 @@ bool latest_acronym(amtdb_struct *amtdb)
                                 "select rowid,ifnull(Acronym,''), "
                                 "ifnull(Definition,''), "
                                 "ifnull(Source,''), "
-                                "ifnull(Description,'') "
+                                "ifnull(Description,''), "
+                                "ifnull(Changed,'') "
                                 "from ACRONYMS "
                                 "Order by rowid DESC LIMIT 5;",
                                 -1, &stmt, NULL);
@@ -351,6 +352,7 @@ bool latest_acronym(amtdb_struct *amtdb)
                (const char *)sqlite3_column_text(stmt, 2));
         printf("SOURCE:      '%s'\n",
                (const char *)sqlite3_column_text(stmt, 3));
+        printf("LAST UPDATE: %s\n", (const char *)sqlite3_column_text(stmt, 5));
         printf("DESCRIPTION: %s\n", (const char *)sqlite3_column_text(stmt, 4));
         searchRecCount++;
     }
@@ -378,7 +380,8 @@ int do_acronym_search(char *findme, amtdb_struct *amtdb)
                             "select rowid,ifnull(Acronym,''), "
                             "ifnull(Definition,''), "
                             "ifnull(Source,''), "
-                            "ifnull(Description,'') "
+                            "ifnull(Description,''), "
+                            "ifnull(Changed,'') "
                             "from ACRONYMS where Acronym like ? "
                             "COLLATE NOCASE ORDER BY Source;",
                             -1, &stmt, NULL);
@@ -403,6 +406,7 @@ int do_acronym_search(char *findme, amtdb_struct *amtdb)
                (const char *)sqlite3_column_text(stmt, 2));
         printf("SOURCE:      '%s'\n",
                (const char *)sqlite3_column_text(stmt, 3));
+        printf("LAST UPDATE: %s\n", (const char *)sqlite3_column_text(stmt, 5));
         printf("DESCRIPTION: %s\n", (const char *)sqlite3_column_text(stmt, 4));
         searchRecCount++;
     }
