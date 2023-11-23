@@ -12,13 +12,13 @@
 
 /* added to enable compile on macOS */
 #ifndef __clang__
-# include <malloc.h>    /* free for use with strdup */
+#include <malloc.h> /* free for use with strdup */
 #endif
 
-#include <locale.h>     /* number output formatting with commas */
-#include <stdio.h>      /* printf */
-#include <stdlib.h>     /* getenv */
-#include <string.h>     /* strlen strndup */
+#include <locale.h> /* number output formatting with commas */
+#include <stdio.h>  /* printf */
+#include <stdlib.h> /* getenv */
+#include <string.h> /* strlen strndup */
 
 /*-------------------------------*/
 /* MAIN - Program starts here    */
@@ -29,7 +29,8 @@
  * @param argv : array of user provided command line arguments.
  * @return int : indicating success or failure for programs execution.
  */
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
 
     atexit(exit_cleanup);
     setlocale(LC_NUMERIC, "");
@@ -39,10 +40,9 @@ int main(int argc, char **argv) {
     /** @note ensure known state for `amtdb.db_OK` before execution */
     amtdb.db_OK = false;
 
-    #if DEBUG
+#if DEBUG
     fprintf(stderr, "DEBUG: the programs was built in 'debug' mode\n");
-    #endif
-
+#endif
 
     if ((amtdb.prog_name = strndup(argv[0], strlen(argv[0]))) == NULL) {
         perror("\nERROR: unable to set program name ");
@@ -51,9 +51,9 @@ int main(int argc, char **argv) {
     /** @note obtain any command line args from the user and action them */
     if (argc > 1) {
 
-    #if DEBUG
-    fprintf(stderr, "DEBUG: command lines args > 1\n");
-    #endif
+#if DEBUG
+        fprintf(stderr, "DEBUG: command lines args > 1\n");
+#endif
 
         /** @note HELP : print out help and exit */
         if (strcmp(argv[1], "-h") == 0 || strcmp(argv[1], "--help") == 0) {
@@ -64,9 +64,12 @@ int main(int argc, char **argv) {
         /** @note SEARCH : search for provided acronym */
         if (strcmp(argv[1], "-s") == 0 || strcmp(argv[1], "--search") == 0) {
             if (argc > 2 && strlen(argv[2]) > 0) {
-                if (!bootstrap_db()) { return (EXIT_FAILURE); }
-                const int rec_match = do_acronym_search(argv[2],&amtdb);
-                printf("\nSearch of '%'d' records for '%s' found '%d' matches.\n\n", amtdb.totalrec, argv[2], rec_match);
+                if (!bootstrap_db()) {
+                    return (EXIT_FAILURE);
+                }
+                const int rec_match = do_acronym_search(argv[2], &amtdb);
+                printf("\nSearch of '%'d' records for '%s' found '%d' matches.\n\n", amtdb.totalrec, argv[2],
+                       rec_match);
                 return (EXIT_SUCCESS);
 
             } else {
@@ -78,8 +81,10 @@ int main(int argc, char **argv) {
 
         /** @note NEW : add a new acronym via user prompts */
         if (strcmp(argv[1], "-n") == 0 || strcmp(argv[1], "--new") == 0) {
-             if (!bootstrap_db()) { return (EXIT_FAILURE); }
-             if (new_acronym(&amtdb)) {
+            if (!bootstrap_db()) {
+                return (EXIT_FAILURE);
+            }
+            if (new_acronym(&amtdb)) {
                 printf("\nADD DONE\n");
                 return (EXIT_SUCCESS);
             } else {
@@ -90,7 +95,9 @@ int main(int argc, char **argv) {
 
         /** @note LATEST : list the 5 newest acronyms */
         if (strcmp(argv[1], "-l") == 0 || strcmp(argv[1], "--latest") == 0) {
-            if (!bootstrap_db()) { return (EXIT_FAILURE); }
+            if (!bootstrap_db()) {
+                return (EXIT_FAILURE);
+            }
             if (latest_acronym(&amtdb)) {
                 printf("\nLATEST DONE\n");
                 return (EXIT_SUCCESS);
@@ -102,14 +109,16 @@ int main(int argc, char **argv) {
 
         /** @note DELETE : delete an acronym record */
         if (strcmp(argv[1], "-d") == 0 || strcmp(argv[1], "--delete") == 0) {
-            if ( argc > 2 ) {
-                if (!bootstrap_db()) { return (EXIT_FAILURE); }
-                long record_ID =  strtol(argv[2], NULL, 10);
-                #if DEBUG
-                fprintf(stderr, "DEBUG: parsed Record ID is: '%ld'\n",record_ID);
-                #endif
-                if ( record_ID > 0 && record_ID <= amtdb.maxrecid) {
-                    if (delete_acronym_record((int) record_ID, &amtdb)) {
+            if (argc > 2) {
+                if (!bootstrap_db()) {
+                    return (EXIT_FAILURE);
+                }
+                long record_ID = strtol(argv[2], NULL, 10);
+#if DEBUG
+                fprintf(stderr, "DEBUG: parsed Record ID is: '%ld'\n", record_ID);
+#endif
+                if (record_ID > 0 && record_ID <= amtdb.maxrecid) {
+                    if (delete_acronym_record((int)record_ID, &amtdb)) {
                         printf("\nDELETE DONE\n");
                         return (EXIT_SUCCESS);
                     } else {
@@ -117,7 +126,7 @@ int main(int argc, char **argv) {
                         exit(EXIT_FAILURE);
                     }
                 } else {
-                    fprintf(stderr, "ERROR: invalid record ID '%ld' - out of range.\n",record_ID);
+                    fprintf(stderr, "ERROR: invalid record ID '%ld' - out of range.\n", record_ID);
                     exit(EXIT_FAILURE);
                 }
             } else {
@@ -135,14 +144,16 @@ int main(int argc, char **argv) {
 
         /** @note UPDATE : update an acronym record */
         if (strcmp(argv[1], "-u") == 0 || strcmp(argv[1], "--update") == 0) {
-            if ( argc > 2 ) {
-                if (!bootstrap_db()) { return (EXIT_FAILURE); }
+            if (argc > 2) {
+                if (!bootstrap_db()) {
+                    return (EXIT_FAILURE);
+                }
                 long record_ID = strtol(argv[2], NULL, 10);
-                #if DEBUG
-                fprintf(stderr, "DEBUG: parsed Record ID is: '%ld'\n",record_ID);
-                #endif
+#if DEBUG
+                fprintf(stderr, "DEBUG: parsed Record ID is: '%ld'\n", record_ID);
+#endif
                 if (record_ID > 0 && record_ID <= amtdb.maxrecid) {
-                    if (update_acronym_record((int) record_ID, &amtdb)) {
+                    if (update_acronym_record((int)record_ID, &amtdb)) {
                         printf("\nUPDATE DONE\n");
                         return (EXIT_SUCCESS);
                     } else {
@@ -150,7 +161,7 @@ int main(int argc, char **argv) {
                         exit(EXIT_FAILURE);
                     }
                 } else {
-                    fprintf(stderr, "ERROR: invalid record ID '%ld' - out of range.\n",record_ID);
+                    fprintf(stderr, "ERROR: invalid record ID '%ld' - out of range.\n", record_ID);
                     exit(EXIT_FAILURE);
                 }
             } else {
@@ -173,9 +184,11 @@ int main(int argc, char **argv) {
         }
 
         /** no matching command lines options - default action to search */
-        if (strlen(argv[1]) > 0)  {
-            if (!bootstrap_db()) { return (EXIT_FAILURE); }
-            const int rec_match = do_acronym_search(argv[1],&amtdb);
+        if (strlen(argv[1]) > 0) {
+            if (!bootstrap_db()) {
+                return (EXIT_FAILURE);
+            }
+            const int rec_match = do_acronym_search(argv[1], &amtdb);
             printf("\nSearch of '%'d' records for '%s' found '%d' matches.\n\n", amtdb.totalrec, argv[1], rec_match);
             return (EXIT_SUCCESS);
         } else {
@@ -184,14 +197,16 @@ int main(int argc, char **argv) {
             exit(EXIT_FAILURE);
         }
 
-    } else {  /** @note NO COMMAND LINE ARGS PROVIDED */
-            fprintf(stderr,"\nERROR: no command lines argument provided.\n");
-            display_version();
-            if (bootstrap_db()) { output_db_stats(&amtdb); }
-            show_help();
-            exit(EXIT_FAILURE);
+    } else { /** @note NO COMMAND LINE ARGS PROVIDED */
+        fprintf(stderr, "\nERROR: no command lines argument provided.\n");
+        display_version();
+        if (bootstrap_db()) {
+            output_db_stats(&amtdb);
+        }
+        show_help();
+        exit(EXIT_FAILURE);
     }
-    //exit main()
+    // exit main()
 }
 
 /**
@@ -200,24 +215,24 @@ int main(int argc, char **argv) {
  * @note accesses the global variable `amtdb_struct *amtdb` structure.
  * @return none.
  */
-bool bootstrap_db(void) {
+bool bootstrap_db(void)
+{
 
     /** @note check for a valid database file */
     if (!check_4_db_file(&amtdb)) {
-        fprintf(stderr,"\nERROR: No suitable database file can be located. Program will exit.\n");
+        fprintf(stderr, "\nERROR: No suitable database file can be located. Program will exit.\n");
         return false;
     }
 
     /** @note connect and obtain initial database information */
     if (!initialise_database(&amtdb)) {
-        fprintf(stderr,"\n\tERROR: database initialisation failed. Program will exit\n");
+        fprintf(stderr, "\n\tERROR: database initialisation failed. Program will exit\n");
         return false;
     }
 
     /** @note set flag to show DB connection is good now */
     amtdb.db_OK = true;
     return true;
-
 }
 
 /**
@@ -226,41 +241,41 @@ bool bootstrap_db(void) {
  * @note accesses the global variable `amtdb_struct *amtdb` structure.
  * @return none.
  */
-void display_version(void) {
+void display_version(void)
+{
 
-    /** @note Check build flag used when program was compiled */
-    #if DEBUG
-        const char Build_Type[] = "Debug";
-    #else
-        const char Build_Type[] = "Release";
-    #endif
+/** @note Check build flag used when program was compiled */
+#if DEBUG
+    const char Build_Type[] = "Debug";
+#else
+    const char Build_Type[] = "Release";
+#endif
 
-    #ifdef __clang__
-        const char compilerVersion[] = __clang_version__;
-    #elif __GNUC__
-        const char compilerVersion[] = __VERSION__;
-    #elif _MSC_VER
-        const char compilerVersion[] = _MSC_FULL_VER;
-    #elif __MINGW64__
-        const char compilerVersion[] = __MINGW64_VERSION_MAJOR
-    #else
-        const char compilerVersion[] = "UNKNOWN";
-    #endif
+#ifdef __clang__
+    const char compilerVersion[] = __clang_version__;
+#elif __GNUC__
+    const char compilerVersion[] = __VERSION__;
+#elif _MSC_VER
+    const char compilerVersion[] = _MSC_FULL_VER;
+#elif __MINGW64__
+    const char compilerVersion[] = __MINGW64_VERSION_MAJOR
+#else
+    const char compilerVersion[] = "UNKNOWN";
+#endif
 
     printf("\n'%s' version is: '%s'.\n", amtdb.prog_name, amtVersion);
-    printf("Compiled on: '%s @ %s'.\n",__DATE__,__TIME__);
-    puts("Copyright (c) 2022 Simon Rowe.\n");
-    printf("C source built as '%s' using compiler '%s'.\n\n",Build_Type,compilerVersion);
+    printf("Compiled on: '%s @ %s'.\n", __DATE__, __TIME__);
+    puts("Copyright (c) 2022 - 2023 Simon Rowe.\n");
+    printf("C source built as '%s' using compiler '%s'.\n\n", Build_Type, compilerVersion);
     puts("For licenses and further information visit:");
     puts("Application:          https://github.com/wiremoons/acroman");
     puts("Linenoise:            https://github.com/antirez/linenoise");
     puts("SQLite database:      https://www.sqlite.org/\n");
 
-    if ( getenv("NO_COLOR") ) {
+    if (getenv("NO_COLOR")) {
         puts("\n'NO_COLOR' environment exist as: https://no-color.org/");
     }
 }
-
 
 /**
  * @brief Output the applications help information.
@@ -268,24 +283,26 @@ void display_version(void) {
  * @note accesses the global variable `amtdb_struct *amtdb` structure.
  * @return none.
  */
-void show_help(void) {
+void show_help(void)
+{
     printf("\n"
-        "\nApplication to manage acronyms stored in a SQLite database.\n"
-        "Usage: %s [switches] [arguments]\n"
-        "\n"
-        "[Switches]        [Arguments]      [Description]\n"
-        "-d, --delete       <rec_id>        delete an acronym record. Argument is mandatory.\n"
-        "-h, --help                         display help information.\n"
-        "-l, --latest                       display the five latest records added.\n"
-        "-n, --new                          add a new record.\n"
-        "-s, --search       <acronym>       find a acronym record. Argument is mandatory.\n"
-        "-u, --update       <rec_id>        update an existing record. Argument is mandatory.\n"
-        "-v, --version                      display program version information.\n"
-        "\n"
-        "Arguments\n"
-        " <acronym> : a string representing an acronym to be found. Use quotes if contains spaces.\n"
-        " <rec_id>  : unique number assigned to each acronym. Can be found with a '-s, --search'.\n"
-        "Use '%%' for wildcard searches.\n\n",amtdb.prog_name);
+           "\nApplication to manage acronyms stored in a SQLite database.\n"
+           "Usage: %s [switches] [arguments]\n"
+           "\n"
+           "[Switches]        [Arguments]      [Description]\n"
+           "-d, --delete       <rec_id>        delete an acronym record. Argument is mandatory.\n"
+           "-h, --help                         display help information.\n"
+           "-l, --latest                       display the five latest records added.\n"
+           "-n, --new                          add a new record.\n"
+           "-s, --search       <acronym>       find a acronym record. Argument is mandatory.\n"
+           "-u, --update       <rec_id>        update an existing record. Argument is mandatory.\n"
+           "-v, --version                      display program version information.\n"
+           "\n"
+           "Arguments\n"
+           " <acronym> : a string representing an acronym to be found. Use quotes if contains spaces.\n"
+           " <rec_id>  : unique number assigned to each acronym. Can be found with a '-s, --search'.\n"
+           "Use '%%' for wildcard searches.\n\n",
+           amtdb.prog_name);
 }
 
 /**
@@ -294,16 +311,15 @@ void show_help(void) {
  * @note accesses the global variable `amtdb_struct *amtdb` structure.
  * @return none.
  */
-void exit_cleanup(void) {
+void exit_cleanup(void)
+{
     if (amtdb.db == NULL) {
         exit(EXIT_SUCCESS);
     }
 
     int rc = sqlite3_close_v2(amtdb.db);
     if (rc != SQLITE_OK) {
-        fprintf(stderr,
-                "\nWARNING: error '%s' when trying to close the database\n",
-                sqlite3_errstr(rc));
+        fprintf(stderr, "\nWARNING: error '%s' when trying to close the database\n", sqlite3_errstr(rc));
         exit(EXIT_FAILURE);
     }
     sqlite3_shutdown();

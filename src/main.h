@@ -31,7 +31,7 @@
 #include "sqlite3.h"      /* SQLite header */
 #include "types.h"        /* Structure to manage SQLite database information */
 
-const char amtVersion[] = "0.11.0"; /** @note set the version of the app here */
+const char amtVersion[] = "0.11.1"; /** @note set the version of the app here */
 amtdb_struct amtdb;                 /** @note Declared globally for 'atexit()'. See 'types.h' */
 
 void exit_cleanup(void);    /** @note Run by 'atexit()' on normal program exit */
